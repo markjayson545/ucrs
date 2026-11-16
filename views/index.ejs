@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+
+    <div style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 480px; background: #fafafa;">
+      <h3 style="margin-top: 0;">Database Status</h3>
+      <p>MongoDB Status: <strong style="color: <%= mongoStatus === 'Connected' ? '#2e7d32' : '#d32f2f' %>;"><%= mongoStatus %></strong></p>
+      <p>
+        <a href="/test-mongo" target="_blank" style="display: inline-block; padding: 8px 14px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+          Test MongoDB Read/Write (/test-mongo)
+        </a>
+      </p>
+    </div>
+  </body>
+</html>
