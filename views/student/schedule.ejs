@@ -1,0 +1,39 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'THE WEEK AHEAD', description: 'Your classes, at a glance. A little structure, a little breathing room.', action: { href: '/student/enrollments', label: 'My enrollments', icon: 'book' } }) %>
+<div class="notice">
+  Waitlisted classes are shown with a label. A waitlist place does not confirm
+  enrollment.
+</div>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Weekly timetable</h2>
+    <span class="badge"><%= termLabel %></span>
+  </div>
+  <div class="week-grid">
+    <% ['MON','TUE','WED','THU','FRI'].forEach(day => { %>
+    <section class="week-day">
+      <h3>
+        <%= { MON:'Monday', TUE:'Tuesday', WED:'Wednesday', THU:'Thursday', FRI:'Friday' }[day] %>
+      </h3>
+      <% const meetings = enrollments.flatMap(e => e.section.schedule.filter(s => s.day === day).map(s => ({ e, s }))).sort((a,b) => a.s.start - b.s.start); %><% if (!meetings.length) { %>
+      <p class="free-day">Room to recharge.<br />No scheduled classes.</p>
+      <% } %><% meetings.forEach(({ e, s }) => { %>
+      <article class="week-class <%= e.course.color %>">
+        <span class="eyebrow"
+          ><%= formatTime(s.start) %>–<%= formatTime(s.end) %></span
+        >
+        <h4>
+          <a href="/catalog/courses/<%= e.course._id %>"
+            ><%= e.course.code %></a
+          >
+        </h4>
+        <p><%= e.course.title %></p>
+        <small><%= s.room %> · <%= e.section.sectionCode %></small><% if (e.status === 'waitlisted') { %><span class="badge warning"
+          >Waitlisted</span
+        ><% } %>
+      </article>
+      <% }) %>
+    </section>
+    <% }) %>
+  </div>
+</section>
+<%- include('../partials/footer') %>

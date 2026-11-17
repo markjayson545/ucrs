@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<a class="back-link" href="/faculty/sections">← My sections</a>
+<%- include('../partials/page-heading', { eyebrow: section.course.code + ' / SECTION ' + section.sectionCode, description: section.course.title, action: { href: '/faculty/sections/' + section._id + '/grades', label: 'Open gradebook', icon: 'chart' } }) %>
+<div class="notice">
+  Showing <%= students.length %> illustrative student records. Sample section
+  occupancy: <%= section.enrolledCount %> / <%= section.capacity %>.
+</div>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Registered students</h2>
+    <label class="sr-only" for="roster-search">Search roster</label
+    ><input
+      id="roster-search"
+      type="search"
+      placeholder="Search name or student ID"
+      data-table-search="roster-table"
+    />
+  </div>
+  <div class="table-wrap">
+    <table id="roster-table">
+      <caption class="sr-only">
+        Sample class roster
+      </caption>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Student ID</th>
+          <th>Email</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% students.forEach(s => { %>
+        <tr>
+          <td><strong><%= s.name %></strong></td>
+          <td><%= s.idNumber %></td>
+          <td><%= s.email %></td>
+          <td><span class="badge success">Enrolled</span></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <p data-empty-for="roster-table" class="empty-state" hidden>
+    No students match your search.
+  </p>
+</section>
+<%- include('../partials/footer') %>

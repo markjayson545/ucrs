@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="UCRS — your university course registration workspace."
+    />
+    <title><%= title %> · UCRS</title>
+    <link rel="stylesheet" href="/stylesheets/portal.css" />
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+    <script src="/vendor/gsap/gsap.min.js" defer></script>
+    <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
+    <script src="/javascripts/portal.js" defer></script>
+    <script src="/javascripts/motion.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <noscript>
+      <style>
+        @media (max-width: 760px) {
+          .app-shell { display: block; }
+          .sidebar { position: static; transform: none; width: 100%; height: auto; }
+          .sidebar-bottom, .mobile-menu { display: none; }
+        }
+      </style>
+      <p class="notice">JavaScript is off. You can browse all pages; preview forms require JavaScript.</p>
+    </noscript>

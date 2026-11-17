@@ -1,0 +1,62 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'YOUR LEARNING, IN MOTION', description: 'Keep track of your registered courses and waitlisted sections.', action: { href: '/catalog/courses', label: 'Add a course' } }) %>
+<div class="notice">
+  <%- include('../partials/icon', { name: 'calendar' }) %><span
+    >First semester · 2026–2027
+    <strong> · 3 enrolled · 1 waitlisted</strong></span
+  >
+</div>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Current enrollments</h2>
+    <span class="badge"><%= enrollments.length %> courses</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">
+        Sample course enrollments
+      </caption>
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Section / faculty</th>
+          <th>Credits</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% enrollments.forEach(e => { %>
+        <tr>
+          <td>
+            <a class="table-title" href="/catalog/courses/<%= e.course._id %>"
+              ><%= e.course.code %></a
+            ><span class="table-sub"><%= e.course.title %></span>
+          </td>
+          <td>
+            <strong><%= e.section.sectionCode %></strong
+            ><span class="table-sub"><%= e.section.faculty.name %></span>
+          </td>
+          <td><%= e.course.credits %></td>
+          <td>
+            <span
+              class="badge <%= e.status === 'enrolled' ? 'success' : 'warning' %>"
+              ><%= e.status %></span
+            >
+          </td>
+          <td>
+            <button
+              class="text-button danger"
+              data-preview-action
+              data-message="Drop preview only. Your enrollment has not changed."
+              aria-label="Preview dropping <%= e.course.title %>"
+            >
+              Preview drop
+            </button>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

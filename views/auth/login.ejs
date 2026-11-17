@@ -1,0 +1,70 @@
+<%- include('../partials/head') %>
+<main id="main" class="auth-layout">
+    <section class="auth-story">
+        <a class="brand" href="/"
+        ><span class="brand-mark"
+            ><%- include('../partials/icon', { name: 'book' }) %></span
+            ><span>UCRS<span class="brand-sub">CAMPUS CONNECTED</span></span></a
+        >
+        <div>
+            <p class="eyebrow">YOUR CAMPUS, CONNECTED.</p>
+            <h1>A little less friction.<br/>A lot more <em>possibility.</em></h1>
+            <p>
+                Your courses, your schedule, and your next chapter. All in one place.
+            </p>
+            <div class="auth-art" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <small>University Course Registration System</small>
+    </section>
+    <section class="auth-panel">
+        <a class="back-link" href="/">← Back to campus</a>
+        <div class="auth-form-wrap">
+            <h2>Welcome back.</h2>
+            <p>Good to see you. Let’s pick up where you left off.</p>
+            <form
+                    id="login-form"
+                    action="/auth/session"
+                    method="POST"
+            >
+                <label for="email">University email</label
+                ><input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="username"
+                        placeholder="you@example.edu"
+                        required
+                /><label for="password">Password</label>
+                <div class="password-field">
+                    <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Enter your password"
+                            required
+                    />
+                    <button
+                            type="button"
+                            data-password="password"
+                            aria-pressed="false"
+                            aria-label="Show password"
+                    >
+                        Show
+                    </button>
+                </div>
+                <button class="button primary full" type="submit">
+                    Sign in <%- include('../partials/icon', { name: 'arrow' }) %>
+                </button>
+                <p class="form-feedback" role="status" hidden></p>
+            </form>
+            <p class="auth-switch">
+                New to campus? <a href="/auth/register">Create an account</a>
+            </p>
+        </div>
+    </section>
+</main>
+<script src="/javascripts/login.js" defer></script>
+<%- include('../partials/auth-end') %>

@@ -1,0 +1,12 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow"><%= eyebrow %></p>
+    <h1><%= title %></h1>
+    <p class="page-description"><%= description %></p>
+  </div>
+  <% if (typeof action !== 'undefined' && action) { %><a
+    class="button primary"
+    href="<%= action.href %>"
+    ><%- include('icon', { name: action.icon || 'plus' }) %><%= action.label %></a
+  ><% } %>
+</div>

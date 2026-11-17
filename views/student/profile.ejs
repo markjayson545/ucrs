@@ -1,0 +1,67 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'YOUR CAMPUS IDENTITY', description: 'The details that keep your university journey connected.' }) %>
+<div class="content-split">
+  <section class="panel">
+    <div class="profile-header">
+      <span class="avatar large">AM</span>
+      <div>
+        <h2><%= user.name %></h2>
+        <p><%= user.idNumber %> · Student</p>
+      </div>
+      <span class="badge success">Active</span>
+    </div>
+    <form data-preview-form inert>
+      <div class="form-grid">
+        <div>
+          <label for="name">Full name</label
+          ><input
+            id="name"
+            name="name"
+            value="<%= user.name %>"
+            required
+            maxlength="100"
+          />
+        </div>
+        <div>
+          <label for="email">University email</label
+          ><input
+            id="email"
+            name="email"
+            type="email"
+            value="<%= user.email %>"
+            required
+          />
+        </div>
+        <div>
+          <label for="idNumber">Student ID</label
+          ><input id="idNumber" value="<%= user.idNumber %>" readonly />
+        </div>
+        <div>
+          <label for="department">Department</label
+          ><input
+            id="department"
+            name="department"
+            value="<%= user.department %>"
+          />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="button primary" type="submit" disabled>
+          Preview changes</button
+        ><button class="button secondary" type="reset">Reset</button>
+      </div>
+      <p class="form-feedback" role="status" hidden></p>
+    </form>
+  </section>
+  <aside class="panel">
+    <span class="mini-icon"
+      ><%- include('../partials/icon', { name: 'shield' }) %></span
+    >
+    <h2>Your details matter.</h2>
+    <p class="muted">
+      Keep your contact information up to date so your campus can keep you
+      informed.
+    </p>
+    <p class="notice">Need to change your student ID? Contact the registrar.</p>
+  </aside>
+</div>
+<%- include('../partials/footer') %>

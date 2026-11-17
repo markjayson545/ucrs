@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+<a class="back-link" href="/faculty/sections">← My sections</a>
+<%- include('../partials/page-heading', { eyebrow: section.course.code + ' / SECTION ' + section.sectionCode, description: 'A considered record of your students’ progress.', action: { href: '/faculty/sections/' + section._id + '/roster', label: 'View roster', icon: 'users' } }) %>
+<form
+  class="panel"
+  data-preview-form
+  inert
+  data-message="Gradebook preview complete. No grades have been submitted or saved."
+>
+  <div class="panel-heading">
+    <h2><%= section.course.title %></h2>
+    <span class="badge warning">Unsaved preview</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">
+        Sample grade entry form
+      </caption>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Student ID</th>
+          <th>Letter grade</th>
+          <th>Record</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% students.forEach(s => { %>
+        <tr>
+          <td><strong><%= s.name %></strong></td>
+          <td><%= s.idNumber %></td>
+          <td>
+            <label class="sr-only" for="grade-<%= s._id %>"
+              >Grade for <%= s.name %></label
+            ><select id="grade-<%= s._id %>" name="grade[<%= s._id %>]">
+              <option value="">Not graded</option>
+              <% ['A','A-','B+','B','B-','C+','C','D','F'].forEach(g => { %>
+              <option><%= g %></option>
+              <% }) %>
+            </select>
+          </td>
+          <td><span class="muted">Preview only</span></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <div class="form-actions">
+    <button class="button primary" type="submit" disabled>
+      Preview grade submission</button
+    ><button class="button secondary" type="reset">Reset grades</button>
+  </div>
+  <p class="form-feedback" role="status" hidden></p>
+</form>
+<%- include('../partials/footer') %>

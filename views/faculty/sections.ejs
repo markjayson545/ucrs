@@ -1,0 +1,9 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'A PLACE FOR EVERY IDEA', description: 'Open a class roster or step into your gradebook.' }) %>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Assigned sections</h2>
+    <span class="badge"><%= termLabel %></span>
+  </div>
+  <%- include('../partials/section-table') %>
+</section>
+<%- include('../partials/footer') %>

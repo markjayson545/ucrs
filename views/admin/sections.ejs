@@ -1,0 +1,9 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'SPACE FOR EVERY STUDENT', description: 'Coordinate classrooms, faculty, and the shape of a semester.', action: { href: '/admin/sections/new', label: 'Create a section' } }) %>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Scheduled sections</h2>
+    <span class="badge"><%= termLabel %></span>
+  </div>
+  <%- include('../partials/section-table') %>
+</section>
+<%- include('../partials/footer') %>

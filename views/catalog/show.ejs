@@ -1,0 +1,85 @@
+<%- include('../partials/header') %>
+<a class="back-link" href="/catalog/courses">← Course catalog</a>
+<div class="detail-hero">
+  <div>
+    <p class="eyebrow"><%= course.department %> / <%= course.code %></p>
+    <h1><%= course.title %></h1>
+    <p><%= course.description %></p>
+    <div class="chips">
+      <span class="badge"><%= course.credits %> credits</span
+      ><span class="badge">Undergraduate</span
+      ><span class="badge"
+        ><%= course.prerequisites.length ? 'Prerequisites apply' : 'Open to all students' %></span
+      >
+    </div>
+  </div>
+  <div class="detail-monogram <%= course.color %>" aria-hidden="true">
+    <%- include('../partials/icon', { name: 'book' }) %><span
+      ><%= course.code %></span
+    >
+  </div>
+</div>
+<div class="content-split">
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>Available sections</h2>
+      <span class="badge"><%= term %></span>
+    </div>
+    <% if (!sections.length) { %>
+    <div class="empty-state">
+      <h3>No sections scheduled</h3>
+      <p>Check back when the next registration period opens.</p>
+    </div>
+    <% } %><% sections.forEach(section => { %>
+    <article class="section-option">
+      <div class="row-between">
+        <h3>Section <%= section.sectionCode %></h3>
+        <span
+          class="badge <%= section.enrolledCount >= section.capacity ? 'warning' : 'success' %>"
+          ><%= section.enrolledCount >= section.capacity ? 'Waitlist available' : 'Seats available' %></span
+        >
+      </div>
+      <p><%= section.faculty.name %></p>
+      <% section.schedule.forEach(s => { %>
+      <div class="schedule-line">
+        <span
+          ><%- include('../partials/icon', { name: 'clock' }) %><%= s.day %> ·
+          <%= formatTime(s.start) %>–<%= formatTime(s.end) %></span
+        ><span
+          ><%- include('../partials/icon', { name: 'pin' }) %><%= s.room %></span
+        >
+      </div>
+      <% }) %>
+      <div class="row-between">
+        <span class="muted"
+          ><%= section.enrolledCount %> / <%= section.capacity %> seats
+          filled</span
+        ><button
+          class="button primary"
+          data-preview-action
+          data-message="Enrollment preview only. No seat has been reserved. Connect a protected enrollment handler when you are ready."
+        >
+          <%= section.enrolledCount >= section.capacity ? 'Preview waitlist' : 'Preview enrollment' %>
+        </button>
+      </div>
+    </article>
+    <% }) %>
+  </section>
+  <aside class="panel">
+    <p class="eyebrow">BEFORE YOU ENROLL</p>
+    <h2>A strong foundation.</h2>
+    <p class="muted">Prerequisites help you get the most out of this course.</p>
+    <% if (!course.prerequisites.length) { %>
+    <p class="notice">No prerequisites. Bring your curiosity.</p>
+    <% } else { %>
+    <ul class="plain-list">
+      <% course.prerequisites.forEach(p => { %>
+      <li><strong><%= p.code %></strong><span><%= p.title %></span></li>
+      <% }) %>
+    </ul>
+    <% } %><a class="text-link" href="/student/schedule"
+      >Review your schedule ↗</a
+    >
+  </aside>
+</div>
+<%- include('../partials/footer') %>

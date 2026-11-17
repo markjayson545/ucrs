@@ -1,0 +1,32 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'THE FACULTY WORKSPACE', description: 'A clear view of your classes, your students, and the week ahead.', action: { href: '/faculty/sections', label: 'View my sections', icon: 'book' } }) %>
+<section class="welcome-banner">
+  <div>
+    <span class="eyebrow">MORE TIME FOR WHAT YOU DO BEST</span>
+    <h2>Inspire the<br />next great idea.</h2>
+    <p>Your classroom starts with a connection.</p>
+    <a class="button light" href="/faculty/sections/section-1/roster"
+      >Meet your class <%- include('../partials/icon', { name: 'arrow' }) %></a
+    >
+  </div>
+  <div class="welcome-art" aria-hidden="true">
+    <div class="art-circle"></div>
+    <div class="art-book"></div>
+    <span>IDEAS<br />START HERE.</span>
+  </div>
+</section>
+<div class="stats-grid compact">
+  <% [['Teaching sections','4'],['Registered students','117'],['Weekly meetings','4']].forEach(([label,value]) => { %>
+  <article class="stat-card">
+    <span><%= label %></span><strong><%= value %></strong
+    ><small>First semester · sample totals</small>
+  </article>
+  <% }) %>
+</div>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Your teaching sections</h2>
+    <span class="badge"><%= term %></span>
+  </div>
+  <%- include('../partials/section-table') %>
+</section>
+<%- include('../partials/footer') %>

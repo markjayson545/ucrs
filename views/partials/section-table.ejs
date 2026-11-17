@@ -1,0 +1,53 @@
+<div class="table-wrap">
+  <table>
+    <caption class="sr-only">
+      Sample teaching sections
+    </caption>
+    <thead>
+      <tr>
+        <th>Course / section</th>
+        <th>Schedule</th>
+        <th>Enrollment</th>
+        <th>Status</th>
+        <th>Workspace</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% sections.forEach(s => { %>
+      <tr>
+        <td>
+          <strong><%= s.course.code %> · <%= s.sectionCode %></strong
+          ><span class="table-sub"><%= s.course.title %></span>
+        </td>
+        <td>
+          <% s.schedule.forEach(m => { %><span class="table-sub"
+            ><%= m.day %> <%= formatTime(m.start) %>–<%= formatTime(m.end) %> ·
+            <%= m.room %></span
+          ><% }) %>
+        </td>
+        <td>
+          <strong><%= s.enrolledCount %> / <%= s.capacity %></strong
+          ><meter
+            min="0"
+            max="<%= s.capacity %>"
+            value="<%= s.enrolledCount %>"
+            aria-label="<%= s.course.code %> seats filled"
+          ></meter>
+        </td>
+        <td>
+          <span
+            class="badge <%= s.enrolledCount >= s.capacity ? 'warning' : 'success' %>"
+            ><%= s.enrolledCount >= s.capacity ? 'Full' : s.status %></span
+          >
+        </td>
+        <td>
+          <div class="table-actions">
+            <a href="/faculty/sections/<%= s._id %>/roster">Roster ↗</a
+            ><a href="/faculty/sections/<%= s._id %>/grades">Grades ↗</a>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

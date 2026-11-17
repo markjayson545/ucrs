@@ -1,0 +1,89 @@
+<%- include('../partials/header') %>
+<a class="back-link" href="/admin/sections">← Section management</a>
+<%- include('../partials/page-heading', { eyebrow: 'BRING A COURSE TO LIFE', description: 'A time, a place, and the right person to bring it all together.' }) %>
+<form class="panel form-panel" data-preview-form inert>
+  <h2>Section details</h2>
+  <div class="form-grid">
+    <div>
+      <label for="course">Course</label
+      ><select id="course" name="course" required>
+        <option value="">Choose a course</option>
+        <% courses.forEach(c => { %>
+        <option value="<%= c._id %>"><%= c.code %> · <%= c.title %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div>
+      <label for="sectionCode">Section code</label
+      ><input id="sectionCode" name="sectionCode" placeholder="A1" required />
+    </div>
+    <div>
+      <label for="term">Term</label
+      ><input id="term" name="term" value="<%= term %>" required />
+    </div>
+    <div>
+      <label for="faculty">Faculty member</label
+      ><select id="faculty" name="faculty" required>
+        <option value="">Assign faculty</option>
+        <% sections.forEach((s,i) => { %>
+        <option value="faculty-<%= i + 1 %>"><%= s.faculty.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div>
+      <label for="capacity">Seat capacity</label
+      ><input
+        id="capacity"
+        name="capacity"
+        type="number"
+        min="1"
+        step="1"
+        value="35"
+        required
+      />
+    </div>
+    <div>
+      <label for="status">Section status</label
+      ><select id="status" name="status">
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+  <fieldset>
+    <legend>Class meeting</legend>
+    <div class="form-grid">
+      <div>
+        <label for="day">Day</label
+        ><select id="day" name="day">
+          <% ['MON','TUE','WED','THU','FRI','SAT'].forEach(d => { %>
+          <option><%= d %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div>
+        <label for="room">Room</label
+        ><input id="room" name="room" placeholder="Tech 301" />
+      </div>
+      <div>
+        <label for="start">Starts at</label
+        ><input id="start" name="start" type="time" value="09:00" required />
+      </div>
+      <div>
+        <label for="end">Ends at</label
+        ><input id="end" name="end" type="time" value="10:30" required />
+      </div>
+    </div>
+    <p class="field-hint">
+      Use campus local time. The end must be later than the start.
+    </p>
+  </fieldset>
+  <div class="form-actions">
+    <button class="button primary" type="submit" disabled>
+      Preview section</button
+    ><a class="button secondary" href="/admin/sections">Cancel</a>
+  </div>
+  <p class="form-feedback" role="status" hidden></p>
+</form>
+<%- include('../partials/footer') %>

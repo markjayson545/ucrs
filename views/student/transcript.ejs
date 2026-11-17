@@ -1,0 +1,46 @@
+<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'EVERY STEP COUNTS', description: 'A record of the work you’ve put in and the progress you’ve made.' }) %>
+<div class="stats-grid compact">
+  <% [['Cumulative GPA','3.75'],['Completed credits','12'],['Completed courses','4']].forEach(([label,value]) => { %>
+  <article class="stat-card">
+    <span><%= label %></span><strong><%= value %></strong
+    ><small>Based on the sample completed term</small>
+  </article>
+  <% }) %>
+</div>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Previous semester</h2>
+    <span class="badge success">Completed</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">
+        Sample academic record
+      </caption>
+      <thead>
+        <tr>
+          <th>Course code</th>
+          <th>Course title</th>
+          <th>Credits</th>
+          <th>Grade</th>
+          <th>Grade points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% transcript.forEach(c => { %>
+        <tr>
+          <td><strong><%= c.code %></strong></td>
+          <td><%= c.title %></td>
+          <td><%= c.credits %></td>
+          <td><span class="badge success"><%= c.letter %></span></td>
+          <td><%= c.points.toFixed(2) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">
+    Unofficial sample record. Contact the registrar for an official transcript.
+  </p>
+</section>
+<%- include('../partials/footer') %>
