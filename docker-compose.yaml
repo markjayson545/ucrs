@@ -18,16 +18,25 @@ services:
 
   mongodb:
     image: mongodb/mongodb-community-server:8.0-ubi8
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        umask 077
+        head -c 512 /dev/urandom | base64 > /tmp/ucrs-mongodb-key
+        exec python3 /usr/local/bin/docker-entrypoint.py mongod --config /etc/ucrs-mongod.yaml
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-user}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-pass}
+      MONGODB_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME:-user}"
+      MONGODB_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD:-pass}"
+      MONGODB_INITDB_REPL_SET_HOST: mongodb:27017
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
     volumes:
       - ./data:/data/db
+      - ./config/mongod.dev.yaml:/etc/ucrs-mongod.yaml:ro
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --eval \"db.adminCommand('ping')\" || exit 1"]
-      interval: 5s
+      test: ["CMD", "mongosh", "--quiet", "--eval", "const node = db.hello(); quit(node.setName === 'ucrs' && node.isWritablePrimary ? 0 : 1)"]
+      interval: 3s
       timeout: 5s
-      retries: 5
-      start_period: 5s
+      retries: 15
+      start_period: 10s

@@ -1,89 +1,52 @@
 <%- include('../partials/header') %>
 <a class="back-link" href="/admin/sections">← Section management</a>
-<%- include('../partials/page-heading', { eyebrow: 'BRING A COURSE TO LIFE', description: 'A time, a place, and the right person to bring it all together.' }) %>
-<form class="panel form-panel" data-preview-form inert>
-  <h2>Section details</h2>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Assign faculty, set the seat capacity, and enter each weekly meeting.' }) %>
+<form class="panel form-panel" method="post" action="<%= section ? '/admin/sections/' + section._id + '/edit' : '/admin/sections' %>"
+  <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+  <% if (!faculty.length) { %><p class="notice">Assign a faculty role on the <a href="/admin/users">People and access</a> page before creating a section.</p><% } %>
   <div class="form-grid">
     <div>
-      <label for="course">Course</label
-      ><select id="course" name="course" required>
+      <label for="course">Course</label>
+      <select id="course" name="course" required <%= section ? 'disabled' : '' %>>
         <option value="">Choose a course</option>
-        <% courses.forEach(c => { %>
-        <option value="<%= c._id %>"><%= c.code %> · <%= c.title %></option>
+        <% courses.forEach(course => { %>
+          <option value="<%= course._id %>" <%= String(section?.course?._id) === String(course._id) ? 'selected' : '' %>><%= course.code %> · <%= course.title %></option>
         <% }) %>
       </select>
     </div>
+    <div><label for="sectionCode">Section code</label><input id="sectionCode" name="sectionCode" value="<%= section?.sectionCode || '' %>" placeholder="A1" required></div>
+    <div><label for="term">Term</label><input id="term" name="term" value="<%= section?.term || term %>" placeholder="YYYY-N" required <%= section ? 'readonly' : '' %>></div>
     <div>
-      <label for="sectionCode">Section code</label
-      ><input id="sectionCode" name="sectionCode" placeholder="A1" required />
-    </div>
-    <div>
-      <label for="term">Term</label
-      ><input id="term" name="term" value="<%= term %>" required />
-    </div>
-    <div>
-      <label for="faculty">Faculty member</label
-      ><select id="faculty" name="faculty" required>
+      <label for="faculty">Faculty member</label>
+      <select id="faculty" name="faculty" required>
         <option value="">Assign faculty</option>
-        <% sections.forEach((s,i) => { %>
-        <option value="faculty-<%= i + 1 %>"><%= s.faculty.name %></option>
+        <% faculty.forEach(user => { %>
+          <option value="<%= user._id %>" <%= String(section?.faculty?._id) === String(user._id) ? 'selected' : '' %>><%= user.name %></option>
         <% }) %>
       </select>
     </div>
+    <div><label for="capacity">Seat capacity</label><input id="capacity" name="capacity" type="number" min="1" step="1" value="<%= section?.capacity ?? 35 %>" required></div>
     <div>
-      <label for="capacity">Seat capacity</label
-      ><input
-        id="capacity"
-        name="capacity"
-        type="number"
-        min="1"
-        step="1"
-        value="35"
-        required
-      />
-    </div>
-    <div>
-      <label for="status">Section status</label
-      ><select id="status" name="status">
-        <option value="open">Open</option>
-        <option value="closed">Closed</option>
-        <option value="cancelled">Cancelled</option>
+      <label for="status">Section status</label>
+      <select id="status" name="status">
+        <% ['open', 'closed', 'cancelled'].forEach(status => { %><option <%= section?.status === status ? 'selected' : '' %>><%= status %></option><% }) %>
       </select>
     </div>
   </div>
   <fieldset>
-    <legend>Class meeting</legend>
-    <div class="form-grid">
-      <div>
-        <label for="day">Day</label
-        ><select id="day" name="day">
-          <% ['MON','TUE','WED','THU','FRI','SAT'].forEach(d => { %>
-          <option><%= d %></option>
-          <% }) %>
-        </select>
-      </div>
-      <div>
-        <label for="room">Room</label
-        ><input id="room" name="room" placeholder="Tech 301" />
-      </div>
-      <div>
-        <label for="start">Starts at</label
-        ><input id="start" name="start" type="time" value="09:00" required />
-      </div>
-      <div>
-        <label for="end">Ends at</label
-        ><input id="end" name="end" type="time" value="10:30" required />
-      </div>
+    <legend>Weekly class meetings</legend>
+    <p class="field-hint">Enter campus local time in 24-hour format, such as 09:00.</p>
+    <% const schedule = section ? section.schedule : [{ day: 'MON', start: 540, end: 630 }]; %>
+    <div data-meetings>
+      <% schedule.forEach((meeting, index) => { %><%- include('../partials/meeting-fields', { meeting, index }) %><% }) %>
     </div>
-    <p class="field-hint">
-      Use campus local time. The end must be later than the start.
-    </p>
+    <template data-meeting-template><%- include('../partials/meeting-fields', { meeting: { day: 'MON', start: 540, end: 630 }, index: 'INDEX' }) %></template>
+    <button class="button secondary" type="button" data-add-meeting hidden>Add a meeting</button>
   </fieldset>
   <div class="form-actions">
-    <button class="button primary" type="submit" disabled>
-      Preview section</button
-    ><a class="button secondary" href="/admin/sections">Cancel</a>
+    <button class="button primary" type="submit" <%= preview || !faculty.length ? 'disabled' : '' %>><%= preview ? 'Preview section' : 'Save section' %></button>
+    <a class="button secondary" href="/admin/sections">Cancel</a>
   </div>
-  <p class="form-feedback" role="status" hidden></p>
+  <div class="form-feedback" aria-live="polite" hidden></div>
 </form>
 <%- include('../partials/footer') %>

@@ -1,53 +1,48 @@
+<% if (!sections.length) { %><p class="empty-state">No sections to display.</p><% } else { %>
 <div class="table-wrap">
   <table>
-    <caption class="sr-only">
-      Sample teaching sections
-    </caption>
-    <thead>
-      <tr>
-        <th>Course / section</th>
-        <th>Schedule</th>
-        <th>Enrollment</th>
-        <th>Status</th>
-        <th>Workspace</th>
-      </tr>
-    </thead>
+    <caption class="sr-only">Course sections</caption>
+    <thead><tr><th>Course / section</th><th>Schedule</th><th>Seats</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
-      <% sections.forEach(s => { %>
-      <tr>
-        <td>
-          <strong><%= s.course.code %> · <%= s.sectionCode %></strong
-          ><span class="table-sub"><%= s.course.title %></span>
-        </td>
-        <td>
-          <% s.schedule.forEach(m => { %><span class="table-sub"
-            ><%= m.day %> <%= formatTime(m.start) %>–<%= formatTime(m.end) %> ·
-            <%= m.room %></span
-          ><% }) %>
-        </td>
-        <td>
-          <strong><%= s.enrolledCount %> / <%= s.capacity %></strong
-          ><meter
-            min="0"
-            max="<%= s.capacity %>"
-            value="<%= s.enrolledCount %>"
-            aria-label="<%= s.course.code %> seats filled"
-          ></meter>
-        </td>
-        <td>
-          <span
-            class="badge <%= s.enrolledCount >= s.capacity ? 'warning' : 'success' %>"
-            ><%= s.enrolledCount >= s.capacity ? 'Full' : s.status %></span
-          >
-        </td>
-        <td>
-          <div class="table-actions">
-            <a href="/faculty/sections/<%= s._id %>/roster">Roster ↗</a
-            ><a href="/faculty/sections/<%= s._id %>/grades">Grades ↗</a>
-          </div>
-        </td>
-      </tr>
+      <% sections.forEach(section => { %>
+        <tr>
+          <td>
+            <strong><%= section.course?.code || 'Course unavailable' %> · <%= section.sectionCode %></strong>
+            <span class="table-sub"><%= section.course?.title %></span>
+            <span class="table-sub"><%= section.term %> · <%= section.faculty?.name || 'Faculty to be assigned' %></span>
+          </td>
+          <td>
+            <% section.schedule.forEach(meeting => { %>
+              <span class="table-sub"><%= meeting.day %> <%= formatTime(meeting.start) %>–<%= formatTime(meeting.end) %> · <%= meeting.room || 'Room TBD' %></span>
+            <% }) %>
+          </td>
+          <td>
+            <strong><%= section.enrolledCount %> / <%= section.capacity %></strong>
+            <meter min="0" max="<%= section.capacity %>" value="<%= section.enrolledCount %>" aria-label="Seats filled"></meter>
+          </td>
+          <td>
+            <% const status = section.status === 'open' && section.enrolledCount >= section.capacity ? 'full' : section.status; %>
+            <span class="badge <%= status === 'open' ? 'success' : 'warning' %>"><%= status %></span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <% if (role === 'admin') { %>
+                <a href="/admin/sections/<%= section._id %>/edit">Edit ↗</a>
+                <% if (!preview) { %>
+                  <form action="/admin/sections/<%= section._id %>/delete" method="post" data-confirm="Delete this section?"
+                    data-confirm-message="Remove section <%= section.sectionCode %> from the schedule for <%= section.term %>?" data-submit>
+                    <button class="text-button danger" type="submit">Delete</button>
+                  </form>
+                <% } %>
+              <% } else { %>
+                <a href="/faculty/sections/<%= section._id %>/roster">Roster ↗</a>
+                <a href="/faculty/sections/<%= section._id %>/grades">Grades ↗</a>
+              <% } %>
+            </div>
+          </td>
+        </tr>
       <% }) %>
     </tbody>
   </table>
 </div>
+<% } %>

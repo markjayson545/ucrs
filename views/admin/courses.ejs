@@ -1,59 +1,42 @@
-<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'THE ACADEMIC FOUNDATION', description: 'Build a thoughtful catalog, one course at a time.', action: { href: '/admin/courses/new', label: 'Create a course' } }) %>
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Manage course details, credits, and prerequisites.', action: { href: '/admin/courses/new', label: 'Create a course' } }) %>
 <section class="panel">
   <div class="panel-heading">
     <h2>All courses <span class="count"><%= courses.length %></span></h2>
-    <label class="sr-only" for="course-search">Search courses</label
-    ><input
-      id="course-search"
-      type="search"
-      placeholder="Search courses…"
-      data-table-search="courses-table"
-    />
+    <% if (courses.length) { %>
+      <%- include('../partials/table-search', { inputId: 'course-search', label: 'Search courses', hint: 'Course code or title', tableId: 'courses-table' }) %>
+    <% } %>
   </div>
-  <div class="table-wrap">
-    <table id="courses-table">
-      <caption class="sr-only">
-        Sample course management list
-      </caption>
-      <thead>
-        <tr>
-          <th>Course</th>
-          <th>Department</th>
-          <th>Credits</th>
-          <th>Prerequisites</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% courses.forEach(c => { %>
-        <tr>
-          <td>
-            <strong><%= c.code %></strong
-            ><span class="table-sub"><%= c.title %></span>
-          </td>
-          <td><%= c.department %></td>
-          <td><%= c.credits %></td>
-          <td><%= c.prerequisites.map(p => p.code).join(', ') || 'None' %></td>
-          <td>
-            <div class="table-actions">
-              <a
-                href="/admin/courses/<%= c._id %>/edit"
-                aria-label="Edit <%= c.title %>"
-                >Edit ↗</a
-              ><a
-                href="/catalog/courses/<%= c._id %>"
-                aria-label="View <%= c.title %>"
-                >View ↗</a
-              >
-            </div>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-  <p class="empty-state" data-empty-for="courses-table" hidden>
-    No courses match your search.
-  </p>
+  <% if (!courses.length) { %><p class="empty-state">Create your first course to start the catalog.</p><% } else { %>
+    <div class="table-wrap">
+      <table id="courses-table">
+        <caption class="sr-only">Course management list</caption>
+        <thead><tr><th>Course</th><th>Department</th><th>Credits</th><th>Prerequisites</th><th>Actions</th></tr></thead>
+        <tbody>
+          <% courses.forEach(course => { %>
+            <tr>
+              <td><strong><%= course.code %></strong><span class="table-sub"><%= course.title %></span></td>
+              <td><%= course.department %></td><td><%= course.credits %></td>
+              <td><%= course.prerequisites.map(prerequisite => prerequisite.code).join(', ') || 'None' %></td>
+              <td>
+                <div class="table-actions">
+                  <a href="/admin/courses/<%= course._id %>/edit" aria-label="Edit <%= course.title %>">Edit ↗</a>
+                  <a href="/catalog/courses/<%= course._id %>" aria-label="View <%= course.title %>">View ↗</a>
+                  <% if (!preview) { %>
+                    <form action="/admin/courses/<%= course._id %>/delete" method="post" data-confirm="Delete this course?"
+                      data-confirm-message="Delete <%= course.code %> · <%= course.title %> from the catalog?" data-submit>
+                      <button class="text-button danger" type="submit" aria-label="Delete <%= course.title %>">Delete</button>
+                    </form>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <%- include('../partials/table-search-count', { tableId: 'courses-table' }) %>
+    <p class="empty-state" data-empty-for="courses-table" hidden>No courses match your search.</p>
+  <% } %>
 </section>
 <%- include('../partials/footer') %>

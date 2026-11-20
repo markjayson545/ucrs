@@ -1,109 +1,65 @@
 # University Course Registration System
 
-> **Project brief and grading reference.**
-> This file records the assignment instructions so they stay in the project directory.
-> Replace it with your own project README (setup, env vars, API overview) in Phase 10 of the build plan, or keep this as `docs/ASSIGNMENT.md` and write a fresh `README.md`.
+UCRS is an Express and EJS portal backed by MongoDB. Students browse courses, register or join a waitlist, manage their schedule, and view grades. Faculty manage their assigned rosters and gradebooks. Administrators maintain the catalog, assign faculty, and review seat usage.
 
----
+## Run the live system
 
-## 1. Project Description
+1. Copy `.env.example` to `.env` if you are setting up a fresh copy. Set your own `SESSION_SECRET`, `JWT_SECRET`, and `ADMIN_PASSWORD`. Set `APP_ORIGIN` to the exact address you will open in the browser, including the port.
+2. Run `docker compose up -d --build`. Compose starts the authenticated, single-node MongoDB replica set and waits until it can accept writes before starting the app.
+3. Run `docker compose exec ucrs npm run seed` to create the initial administrator using the email and password in your environment.
+4. Open [the live portal](http://localhost:8080). Create student accounts using the registration form. Sign in as the administrator and use **People and access** to assign an account the Faculty role before assigning that person to a section.
 
-A system for students to browse courses, register for classes and view schedules, and for faculty and admins to manage course offerings.
+Compose uses `./data` for existing MongoDB files. Keep the same MongoDB credentials when reusing that directory. The app uses transactions for registration, seat changes, and grade submission, so a MongoDB replica set is required. See [Mongoose transactions](https://mongoosejs.com/docs/transactions.html) and [MongoDB replica set authentication](https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set-with-keyfile-access-control/).
 
-## 2. Core Features
+To run Node on the host, start MongoDB with `docker compose up -d mongodb`, install dependencies with `npm ci`, and use a host-accessible `MONGO_URI` for `npm run dev`. For the Compose database, replace the hostname in the example URI with `127.0.0.1`, use the mapped MongoDB port, and add `&directConnection=true`. The container service uses the hostname `mongodb` when it runs inside Compose.
 
-- [ ] **Roles and auth:** Student, Faculty and Admin roles, with JWT authentication
-- [ ] **Course and section management:** credits, capacity, prerequisites, schedule
-- [ ] **Registration and drop:** capacity checks and prerequisite validation
-- [ ] **Student views:** personal timetable and registered courses
-- [ ] **Grades:** grade submission by faculty; transcript view for students
-- [ ] **Admin reports:** enrollment statistics and waitlists
+In Windows PowerShell, use `npm.cmd` if your execution policy blocks `npm.ps1`.
 
-## 3. Evaluation Rubric (Total: 100 Points)
+| Setting | Purpose |
+| --- | --- |
+| `PORT`, `APP_ORIGIN` | HTTP port and exact browser origin for session and protected form submissions |
+| `MONGO_URI` | MongoDB replica-set connection string |
+| `SESSION_SECRET`, `JWT_SECRET` | Separate secrets for the session cookie signature and API bearer tokens |
+| `CURRENT_TERM` | Registration term in `YYYY-N` format. Defaults to `2026-1`. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Credentials used by `npm run seed` to create the initial administrator |
+| `NODE_ENV`, `TRUST_PROXY` | Production uses HTTPS cookies. Set `TRUST_PROXY=1` when the app is behind one trusted HTTPS proxy. |
 
-Points reward both functional completeness and professional engineering practices.
+## Explore the sample portal
 
-| # | Criteria | Points | Description |
-|---|----------|:------:|-------------|
-| 1 | Core Functionality & Features | 35 | All major features of the chosen system are implemented and work correctly (CRUD, business rules, status flows, searches/filters). |
-| 2 | Database Design (MongoDB / Mongoose) | 15 | Well-structured schemas, proper relationships (refs / embedding), indexes where useful, validation, and sensible data modeling. |
-| 3 | Authentication & Authorization | 12 | Secure user registration/login (JWT or sessions), password hashing, role-based access control protecting appropriate routes. |
-| 4 | API Design & Code Quality | 15 | RESTful routes, consistent response format, proper HTTP status codes, modular structure (routes / controllers / models / middleware), clean readable code. |
-| 5 | Error Handling, Validation & Security | 10 | Input validation, centralized error handling, protection against common issues (e.g. basic sanitization, rate-limit awareness, no sensitive data leaks). |
-| 6 | Documentation & Testing | 8 | Clear README (setup, env vars, how to run, API overview), sample requests (Postman collection or similar), and at least basic manual or automated tests. |
-| 7 | Extra / Polish | 5 | Bonus features, pagination, filtering/sorting, file upload handling, logging, deployment readiness, or outstanding code organization. |
-| | **TOTAL** | **100** | |
+Run `npm ci` and `npm run dev:views`, then open [the preview](http://127.0.0.1:8081). The preview loads sample records and lets you explore all three roles without MongoDB. Set `VIEWS_PORT` to use a different port.
 
-## 4. Recommended Technical Requirements (Common to All Projects)
+The home page shows screenshots of the [student timetable](public/images/showcase/student-schedule.webp), [faculty gradebook](public/images/showcase/faculty-gradebook.webp), and [admin reports](public/images/showcase/admin-reports.webp).
 
-- Node.js + Express.js with a clear folder structure (`routes`, `controllers`, `models`, `middleware`, `utils`)
-- MongoDB with Mongoose ODM
-- Environment variables for configuration (`dotenv`)
-- JWT-based authentication (or an equivalent secure session approach)
-- Request validation (e.g. `express-validator`)
-- Proper async error handling and consistent JSON responses
-- README with installation, running instructions, and API documentation overview
-- *(Optional but encouraged)* Postman docs
+## Account settings
 
-## 5. Build Constraints (self-imposed)
+Open your avatar menu in any workspace for the theme switch, accent settings, and sign-out. **Account settings** lets students, faculty, and administrators edit their own profile and password. Email changes require the current password. Changing the password keeps this browser signed in with a fresh session and invalidates previous sessions and JWTs.
 
-- Built manually, without AI assistance, for this project only
-- Reference sources: official documentation only (MDN, expressjs.com, mongoosejs.com, mongodb.com/docs, package READMEs)
+## API quick reference
 
-## 6. Quick Reference
+Get a JWT with `POST /api/auth/login` using `email` and `password`. Send it as `Authorization: Bearer <token>` on protected JSON routes. The browser portal signs in through `POST /auth/session` and uses a session cookie.
 
-### Where each rubric item is earned
+| Endpoint | What it does |
+| --- | --- |
+| `GET /api/health` | Check if HTTP is responding |
+| `POST /api/auth/register`, `GET /api/auth/me` | Create a student account and read the current API identity |
+| `GET /api/courses`, `GET /api/courses/:id` | List and read courses. List supports `q`, `department`, `page`, `limit`, and `sort`. |
+| `POST /api/courses`, `PATCH /api/courses/:id`, `DELETE /api/courses/:id` | Manage courses as an administrator |
+| `GET /api/sections`, `GET /api/sections/:id` | List and read sections. List supports `term` and `course`. |
+| `POST /api/sections`, `PATCH /api/sections/:id`, `DELETE /api/sections/:id` | Manage sections as an administrator |
+| `POST /api/enrollments`, `DELETE /api/enrollments/:id` | Register with a `section` ID or drop by enrollment ID as a student |
+| `GET /api/enrollments`, `GET /api/enrollments/schedule`, `GET /api/enrollments/transcript` | Read your student records |
+| `GET /api/sections/:id/roster`, `PATCH /api/sections/:id/grades` | Read and grade a section you teach. Send `{ "grade": { "<enrollmentId>": "A" } }` for grade submission. |
+| `GET /api/reports?term=2026-1` | Read seat capacity, occupancy, and waitlists as an administrator |
 
-| Rubric item | Build plan phase(s) |
-|-------------|---------------------|
-| 1. Core functionality | 5, 6, 7, 8 |
-| 2. Database design | 2 |
-| 3. Auth & authorization | 3 |
-| 4. API design & code quality | 1, 4, all phases |
-| 5. Errors, validation, security | 4, 9 |
-| 6. Documentation & testing | 10 |
-| 7. Extra / polish | 11 |
+The original `/auth/register`, `/auth/login`, `/auth/me`, and `/courses` JSON endpoints are available as aliases.
 
-### Build phases
+## Checks and file guides
 
-0. JavaScript refresher
-1. Project skeleton
-2. Data models (Mongoose)
-3. Authentication and authorization
-4. Validation and error handling
-5. Courses and sections (CRUD)
-6. Registration and drop (core business rules)
-7. Timetable, grades and transcript
-8. Admin reports
-9. Security hardening
-10. Testing and documentation
-11. Polish and deployment readiness
-
-See `Course_Registration_System_Build_Plan.docx` for the detailed steps, checkpoints and schedule.
-
-## 7. Design Decisions Log
-
-Record each decision here (or in `DEVLOG.md`) as you make it, so it can go into the final README.
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Language (JS or TS) | | |
-| Module system (CommonJS or ES modules) | | |
-| Response envelope | | |
-| Waitlist behaviour (waitlist or reject when full) | | |
-| Passing grade for prerequisites | | |
-| Re-enrolment after drop (reuse or new document) | | |
-| Waitlist promotion re-checks conflicts? | | |
-| Maximum credit load per term | | |
-| Delete behaviour (block or soft delete) | | |
-| Grade submission moves enrollment to `completed`? | | |
-
-## UI preview and EJS learning guide
-
-Run `npm run dev:views`, then open [the local preview](http://127.0.0.1:8081). This mode needs no MongoDB connection and shows sample records only. Forms display preview feedback without calling APIs or saving data.
-
-The views include the course catalog, student workspace, faculty workspace, and admin workspace. Page routes live in `routes/views.routes.js`; the existing JSON routes remain unchanged, including `/courses`.
-
-Read [Connecting views](docs/CONNECTING-VIEWS.md) for the URI map, EJS patterns, service-to-view controller snippets, authentication guidance, form examples, and suggested learning order. Start by connecting the read-only catalog. [Design notes](docs/DESIGN.md) explain the UI/UX Pro Max direction and shared styles.
-
-Run `npm run check:views` to check rendered pages and internal navigation without a database.
+- `npm run check:views` follows links through the preview and checks rendering, filters, error pages, and assets.
+- Set `UCRS_TEST_MONGO_URI` to a test replica-set URI and run `npm run check:system`. The check creates and removes a temporary database named `ucrs_test_...` on that server.
+- [How the files connect](docs/FILE-CONNECTIONS.md) walks through startup, a GET page, a POST form, an API request, and browser assets.
+- [Connecting views](docs/CONNECTING-VIEWS.md) maps the browser URLs to EJS files.
+- [Animations](docs/ANIMATIONS.md) explains how to reuse the existing motion patterns.
+- [Design and usability review](docs/DESIGN.md) documents the themes, imagery, and interaction changes.
+- [API request examples](docs/API-EXAMPLES.md) walks through setup, enrollment, grading, and reporting over HTTP.
+- [Requirements and evaluation](REQUIREMENTS_RUBRICS.md) is the grading reference and maps each rubric criterion to evidence.

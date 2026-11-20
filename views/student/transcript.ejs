@@ -1,46 +1,31 @@
-<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'EVERY STEP COUNTS', description: 'A record of the work you’ve put in and the progress you’ve made.' }) %>
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'STUDENT WORKSPACE', description: 'Review completed courses and your credit-weighted GPA.' }) %>
 <div class="stats-grid compact">
-  <% [['Cumulative GPA','3.75'],['Completed credits','12'],['Completed courses','4']].forEach(([label,value]) => { %>
-  <article class="stat-card">
-    <span><%= label %></span><strong><%= value %></strong
-    ><small>Based on the sample completed term</small>
-  </article>
+  <% [['Cumulative GPA', transcript.gpa?.toFixed(2) ?? '—'], ['Graded credits', transcript.credits], ['Completed courses', transcript.records.length]].forEach(([label, value]) => { %>
+    <article class="stat-card"><span><%= label %></span><strong><%= value %></strong></article>
   <% }) %>
 </div>
 <section class="panel">
-  <div class="panel-heading">
-    <h2>Previous semester</h2>
-    <span class="badge success">Completed</span>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <caption class="sr-only">
-        Sample academic record
-      </caption>
-      <thead>
-        <tr>
-          <th>Course code</th>
-          <th>Course title</th>
-          <th>Credits</th>
-          <th>Grade</th>
-          <th>Grade points</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% transcript.forEach(c => { %>
-        <tr>
-          <td><strong><%= c.code %></strong></td>
-          <td><%= c.title %></td>
-          <td><%= c.credits %></td>
-          <td><span class="badge success"><%= c.letter %></span></td>
-          <td><%= c.points.toFixed(2) %></td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-  <p class="table-note">
-    Unofficial sample record. Contact the registrar for an official transcript.
-  </p>
+  <div class="panel-heading"><h2>Course history</h2></div>
+  <% if (!transcript.records.length) { %><p class="empty-state">Your grades will appear here after faculty submit them.</p><% } else { %>
+    <div class="table-wrap">
+      <table>
+        <caption class="sr-only">Academic record</caption>
+        <thead><tr><th>Term</th><th>Course</th><th>Credits</th><th>Grade</th><th>Grade points</th></tr></thead>
+        <tbody>
+          <% transcript.records.forEach(record => { %>
+            <tr>
+              <td><%= record.term %></td>
+              <td><strong><%= record.code %></strong><span class="table-sub"><%= record.title %></span></td>
+              <td><%= record.credits %></td>
+              <td><span class="badge"><%= record.letter %></span></td>
+              <td><%= record.points.toFixed(2) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+  <p class="table-note">Contact the registrar for an official transcript.</p>
 </section>
 <%- include('../partials/footer') %>

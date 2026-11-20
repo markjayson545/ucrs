@@ -1,26 +1,20 @@
 <article class="course-card">
-  <div class="course-art <%= course.color || 'blue' %>">
-    <span class="art-orbit"></span
-    ><span class="course-art-code"><%= course.code %></span><%- include('icon', { name: 'book' }) %><span class="art-label"><%= course.department %></span>
+  <div class="course-art">
+    <%- include('course-photo', { course }) %>
+    <span class="course-department"><%= course.department %></span>
   </div>
   <div class="course-card-body">
     <div class="row-between">
-      <span class="eyebrow"><%= course.code %></span
-      ><span class="credit-label"><%= course.credits %> credits</span>
+      <span class="eyebrow"><%= course.code %></span>
+      <span class="credit-label"><%= course.credits %> credits</span>
     </div>
-    <h2>
-      <a href="/catalog/courses/<%= course._id %>"><%= course.title %></a>
-    </h2>
-    <p><%= course.description %></p>
+    <h2><a href="/catalog/courses/<%= course._id %>"><%= course.title %></a></h2>
+    <% if (course.description) { %><p><%= course.description %></p><% } %>
     <div class="course-card-footer">
-      <span
-        ><%= course.prerequisites.length ? 'Prerequisite required' : 'No prerequisites' %></span
-      ><a
-        class="round-link"
-        href="/catalog/courses/<%= course._id %>"
-        aria-label="View <%= course.title %>"
-        ><%- include('icon', { name: 'arrow' }) %></a
-      >
+      <span><%= course.prerequisites.length ? 'Prerequisites apply' : 'No prerequisites' %></span>
+      <a class="round-link" href="/catalog/courses/<%= course._id %>" aria-label="View <%= course.title %>">
+        <%- include('icon', { name: 'arrow' }) %>
+      </a>
     </div>
   </div>
 </article>

@@ -1,163 +1,104 @@
-const router = require("express").Router();
-const demo = require("../fixtures/view-demo");
-const {
-  loadPageUser,
-  requirePageUser,
-  allowPageRoles,
-} = require('../middleware/view-auth');
+const router = require('express').Router();
+const { rateLimit } = require('express-rate-limit');
+const portal = require('../controllers/portal.controller');
+const { loadPageUser, requirePageUser, allowPageRoles } = require('../middleware/view-auth');
+const sameOrigin = require('../middleware/sameOrigin');
+const validate = require('../middleware/validate');
+const { idParam, createRules, updateRules } = require('../validators/course.validator');
+const { profileRules, passwordRules } = require('../validators/account.validator');
+const asyncHandler = require('../utils/asyncHandler');
+const AppError = require('../utils/AppError');
+const { currentTerm } = require('../config/academic');
+const { days, formatTime } = require('../utils/time');
 
-// These are public UI previews, NOT protected dashboards. Add verified session
-// authentication and role guards before replacing demo data with real records.
+const limitAccountChanges = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    handler: (req, res, next) => next(new AppError('Too many account changes. Try again later.', 429)),
+});
+
 router.use((req, res, next) => {
-  res.locals = {
-    ...res.locals,
-    ...demo,
-    role: "student",
-    currentPath: req.path,
-    preview: true,
-    formatTime: (minutes) =>
-      `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`,
-  };
-  next();
-});
-
-// Activates the route guard
-router.use(loadPageUser);
-router.use(
-  '/student',
-  requirePageUser,
-  allowPageRoles('student')
-);
-
-router.use(
-  '/faculty',
-  requirePageUser,
-  allowPageRoles('faculty')
-);
-
-router.use(
-  '/admin', 
-  requirePageUser, 
-  allowPageRoles('admin')
-)
-
-const page =
-  (view, title, role = "student") =>
-  (req, res) =>
-    res.render(view, { title, role });
-const missing = (res) =>
-  res.status(404).render("shared/notFound", { title: "Page not found" });
-
-router.get("/", page("index", "Your next chapter starts here"));
-router.get("/auth/login", page("auth/login", "Welcome back"));
-router.get("/auth/register", page("auth/register", "Create your account"));
-router.get("/catalog/courses", (req, res) => {
-  const q =
-    typeof req.query.q === "string" ? req.query.q.trim().slice(0, 100) : "";
-  const department =
-    typeof req.query.department === "string" ? req.query.department : "";
-  const filtered = demo.courses.filter(
-    (c) =>
-      (!department || c.department === department) &&
-      `${c.code} ${c.title}`.toLowerCase().includes(q.toLowerCase()),
-  );
-  res.render("catalog/index", {
-    title: "Find your next possibility",
-    courses: filtered,
-    q,
-    department,
-  });
-});
-router.get("/catalog/courses/:courseId", (req, res) => {
-  const course = demo.courses.find((c) => c._id === req.params.courseId);
-  if (!course) return missing(res);
-  res.render("catalog/show", {
-    title: course.title,
-    course,
-    sections: demo.sections.filter((s) => s.course._id === course._id),
-  });
-});
-router.get("/student", page("student/index", "A little progress, every day."));
-router.get(
-  "/student/enrollments",
-  page("student/enrollments", "My enrollments"),
-);
-router.get(
-  "/student/schedule",
-  page("student/schedule", "Make room for what matters."),
-);
-router.get(
-  "/student/transcript",
-  page("student/transcript", "Your academic journey"),
-);
-router.get("/student/profile", page("student/profile", "My profile"));
-router.get(
-  "/faculty",
-  page("faculty/index", "Good teaching starts here.", "faculty"),
-);
-router.get(
-  "/faculty/sections",
-  page("faculty/sections", "My teaching sections", "faculty"),
-);
-for (const child of ["roster", "grades"]) {
-  router.get(`/faculty/sections/:sectionId/${child}`, (req, res) => {
-    const section = demo.sections.find((s) => s._id === req.params.sectionId);
-    if (!section) return missing(res);
-    res.render(`faculty/${child}`, {
-      title: child === "roster" ? "Class roster" : "Gradebook",
-      role: "faculty",
-      section,
+    if (/^\/api(\/|$)/.test(req.path)) return next();
+    Object.assign(res.locals, {
+        pageRequest: true,
+        currentPath: req.path,
+        user: null,
+        role: 'guest',
+        term: currentTerm,
+        termLabel: 'Term ' + currentTerm,
+        days,
+        formatTime,
+        notice: req.session.notice,
     });
-  });
-}
-router.get("/admin", page("admin/index", "A campus, moving forward.", "admin"));
-router.get(
-  "/admin/courses",
-  page("admin/courses", "Course management", "admin"),
-);
-// Literal /new comes before the parameter route.
-router.get("/admin/courses/new", (req, res) =>
-  res.render("admin/course-form", {
-    title: "Create a course",
-    role: "admin",
-    course: null,
-  }),
-);
-router.get("/admin/courses/:courseId/edit", (req, res) => {
-  const course = demo.courses.find((c) => c._id === req.params.courseId);
-  if (!course) return missing(res);
-  res.render("admin/course-form", {
-    title: "Edit course",
-    role: "admin",
-    course,
-  });
+    if (req.method === 'GET' && req.session.notice) delete req.session.notice;
+    loadPageUser(req, res, next);
 });
-router.get(
-  "/admin/sections",
-  page("admin/sections", "Section management", "admin"),
-);
-router.get(
-  "/admin/sections/new",
-  page("admin/section-form", "Create a section", "admin"),
-);
-router.get("/admin/users", page("admin/users", "People & access", "admin"));
-router.get(
-  "/admin/reports",
-  page("admin/reports", "The semester at a glance", "admin"),
-);
-router.get("/preview/forbidden", (req, res) =>
-  res
-    .status(403)
-    .render("shared/notAuthorized", { title: "Access restricted" }),
-);
 
-// Catch page namespaces only. API routes, including legacy /courses, pass through.
-router.use((req, res, next) => {
-  if (
-    req.method === "GET" &&
-    /^\/(auth|catalog|student|faculty|admin|preview)(\/|$)/.test(req.path)
-  )
-    return missing(res);
-  next();
+router.use('/student', requirePageUser, allowPageRoles('student'));
+router.use('/faculty', requirePageUser, allowPageRoles('faculty'));
+router.use('/admin', requirePageUser, allowPageRoles('admin'));
+router.use('/account', requirePageUser);
+router.use(['/student', '/faculty', '/admin', '/account'], (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    if (req.method === 'POST') return sameOrigin(req, res, next);
+    next();
 });
+
+router.get('/', (req, res) => res.render('index', { title: 'University Course Registration' }));
+router.get('/auth/login', (req, res) => res.render('auth/login', {
+    title: 'Sign in',
+    registrationComplete: req.query.registered === '1',
+}));
+router.get('/auth/register', (req, res) => res.render('auth/register', { title: 'Create your account' }));
+router.get('/catalog/courses', asyncHandler(portal.catalog));
+router.get('/catalog/courses/:id', idParam, validate, asyncHandler(portal.courseDetails));
+router.get('/account', portal.account);
+router.post('/account/profile', limitAccountChanges, profileRules, validate, asyncHandler(portal.updateProfile));
+router.post('/account/password', limitAccountChanges, passwordRules, validate, asyncHandler(portal.changePassword));
+
+router.get('/student', asyncHandler(portal.studentHome));
+router.get('/student/enrollments', asyncHandler(portal.enrollments));
+router.get('/student/schedule', asyncHandler(portal.schedule));
+router.get('/student/transcript', asyncHandler(portal.transcript));
+router.get('/student/profile', portal.account);
+router.post('/student/enrollments/:id/register', idParam, validate, asyncHandler(portal.register));
+router.post('/student/enrollments/:id/drop', idParam, validate, asyncHandler(portal.drop));
+router.post('/student/profile', limitAccountChanges, profileRules, validate, asyncHandler(portal.updateProfile));
+
+router.get('/faculty', asyncHandler(portal.facultyHome));
+router.get('/faculty/sections', asyncHandler(portal.facultySections));
+router.get('/faculty/sections/:id/roster', idParam, validate, asyncHandler(portal.roster));
+router.get('/faculty/sections/:id/grades', idParam, validate, asyncHandler(portal.gradebook));
+router.post('/faculty/sections/:id/grades', idParam, validate, asyncHandler(portal.submitGrades));
+
+router.get('/admin', asyncHandler(portal.adminHome));
+router.get('/admin/courses', asyncHandler(portal.adminCourses));
+router.get('/admin/courses/new', asyncHandler(portal.courseForm));
+router.get('/admin/courses/:id/edit', idParam, validate, asyncHandler(portal.courseForm));
+router.post('/admin/courses', courseCheckboxes, createRules, validate, asyncHandler(portal.createCourse));
+router.post('/admin/courses/:id/edit', idParam, courseCheckboxes, updateRules, validate, asyncHandler(portal.updateCourse));
+router.post('/admin/courses/:id/delete', idParam, validate, asyncHandler(portal.deleteCourse));
+router.get('/admin/sections', asyncHandler(portal.adminSections));
+router.get('/admin/sections/new', asyncHandler(portal.sectionForm));
+router.get('/admin/sections/:id/edit', idParam, validate, asyncHandler(portal.sectionForm));
+router.post('/admin/sections', asyncHandler(portal.saveSection));
+router.post('/admin/sections/:id/edit', idParam, validate, asyncHandler(portal.saveSection));
+router.post('/admin/sections/:id/delete', idParam, validate, asyncHandler(portal.deleteSection));
+router.get('/admin/users', asyncHandler(portal.users));
+router.post('/admin/users/:id/access', idParam, validate, asyncHandler(portal.updateAccess));
+router.get('/admin/reports', asyncHandler(portal.reports));
+
+function courseCheckboxes(req, res, next) {
+    // Browsers send nothing for zero selections and a string for one selection.
+    const prerequisites = req.body.prerequisites;
+    if (prerequisites === undefined) req.body.prerequisites = [];
+    else if (typeof prerequisites === 'string') req.body.prerequisites = [prerequisites];
+    next();
+}
+
+router.use((req, res, next) => {
+    if (!res.locals.pageRequest) return next();
+    next(new AppError('This page could not be found.', 404));
+});
+
 module.exports = router;

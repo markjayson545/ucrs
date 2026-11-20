@@ -1,51 +1,42 @@
-<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'THE PEOPLE BEHIND CAMPUS', description: 'A connected community starts with the people in it.' }) %>
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Assign faculty roles and control access to campus accounts.' }) %>
 <section class="panel">
   <div class="panel-heading">
     <h2>Campus directory</h2>
-    <label class="sr-only" for="people-search">Search people</label
-    ><input
-      id="people-search"
-      type="search"
-      placeholder="Search people…"
-      data-table-search="people-table"
-    />
+    <%- include('../partials/table-search', { inputId: 'people-search', label: 'Search people', hint: 'Name, email, ID, or role', tableId: 'people-table' }) %>
   </div>
   <div class="table-wrap">
     <table id="people-table">
-      <caption class="sr-only">
-        Sample campus directory
-      </caption>
-      <thead>
-        <tr>
-          <th>Name / email</th>
-          <th>Student ID</th>
-          <th>Department</th>
-          <th>Role</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+      <caption class="sr-only">Campus accounts</caption>
+      <thead><tr><th>Name / email</th><th>Campus ID</th><th>Department</th><th>Role and status</th></tr></thead>
       <tbody>
-        <% students.forEach(s => { %>
-        <tr>
-          <td>
-            <strong><%= s.name %></strong
-            ><span class="table-sub"><%= s.email %></span>
-          </td>
-          <td><%= s.idNumber %></td>
-          <td><%= s.department %></td>
-          <td><span class="badge"><%= s.role %></span></td>
-          <td>
-            <span class="badge success"
-              ><%= s.isActive ? 'Active' : 'Inactive' %></span
-            >
-          </td>
-        </tr>
+        <% people.forEach(person => { %>
+          <tr data-search-row="<%= [person.name, person.email, person.idNumber, person.department, person.role].join(' ') %>">
+            <td><strong><%= person.name %></strong><span class="table-sub"><%= person.email %></span></td>
+            <td><%= person.idNumber || '—' %></td><td><%= person.department || '—' %></td>
+            <td>
+              <% if (preview || person.role === 'admin') { %>
+                <span class="badge"><%= person.role %></span><span class="badge"><%= person.isActive ? 'Active' : 'Inactive' %></span>
+              <% } else { %>
+                <form action="/admin/users/<%= person._id %>/access" method="post" class="table-actions" data-submit>
+                  <select name="role" aria-label="Role for <%= person.name %>">
+                    <option value="student" <%= person.role === 'student' ? 'selected' : '' %>>Student</option>
+                    <option value="faculty" <%= person.role === 'faculty' ? 'selected' : '' %>>Faculty</option>
+                  </select>
+                  <select name="isActive" aria-label="Account status for <%= person.name %>">
+                    <option value="true" <%= person.isActive ? 'selected' : '' %>>Active</option>
+                    <option value="false" <%= person.isActive ? '' : 'selected' %>>Inactive</option>
+                  </select>
+                  <button type="submit" class="button secondary">Save access</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <p class="empty-state" data-empty-for="people-table" hidden>
-    No people match your search.
-  </p>
+  <%- include('../partials/table-search-count', { tableId: 'people-table' }) %>
+  <p class="empty-state" data-empty-for="people-table" hidden>No people match your search.</p>
 </section>
 <%- include('../partials/footer') %>

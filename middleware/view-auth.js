@@ -7,10 +7,11 @@ exports.loadPageUser = async (req, res, next) => {
 
         if(req.session?.userId){
             const user = await User.findById(req.session.userId)
-            .select('name email role idNumber department isActive')
+            .select('name email role idNumber department isActive authVersion')
             .lean();
 
-            if (user?.isActive) {
+            if (user?.isActive && (req.session.authVersion ?? 0) === (user.authVersion ?? 0)) {
+                res.set('Cache-Control', 'no-store');
                 req.user = user;
                 res.locals.user = user;
                 res.locals.role = user.role;

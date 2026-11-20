@@ -1,24 +1,53 @@
 <%- include('head') %>
+<% const menus = {
+  guest: [['/catalog/courses', 'Course catalog', 'book']],
+  student: [['/student', 'Overview', 'grid'], ['/catalog/courses', 'Course catalog', 'book'],
+    ['/student/enrollments', 'My enrollments', 'check'], ['/student/schedule', 'Weekly schedule', 'calendar'],
+    ['/student/transcript', 'Academic record', 'chart']],
+  faculty: [['/faculty', 'Overview', 'grid'], ['/faculty/sections', 'My sections', 'book'],
+    ['/catalog/courses', 'Course catalog', 'search']],
+  admin: [['/admin', 'Overview', 'grid'], ['/admin/courses', 'Courses', 'book'],
+    ['/admin/sections', 'Sections', 'calendar'], ['/admin/users', 'People and access', 'users'],
+    ['/admin/reports', 'Reports', 'chart'], ['/catalog/courses', 'Course catalog', 'search']],
+}; %>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar" aria-label="Main navigation">
-    <a class="brand" href="/"><span class="brand-mark"><%- include('icon', { name: 'book' }) %></span><span>UCRS<span class="brand-sub">CAMPUS CONNECTED</span></span></a>
-    <div class="workspace-label">YOUR WORKSPACE</div>
-    <% const menus = { student: [['/student','Overview','grid'],['/catalog/courses','Course catalog','book'],['/student/enrollments','My enrollments','check'],['/student/schedule','Weekly schedule','calendar'],['/student/transcript','Academic record','chart']], faculty: [['/faculty','Overview','grid'],['/faculty/sections','My sections','book'],['/catalog/courses','Course catalog','search']], admin: [['/admin','Overview','grid'],['/admin/courses','Courses','book'],['/admin/sections','Sections','calendar'],['/admin/users','People & access','users'],['/admin/reports','Reports','chart']] }; %>
-    <nav class="nav-list">
-      <% menus[role].forEach(([url, label, icon], i) => { const active = i === 0 ? currentPath === url : currentPath === url || currentPath.startsWith(url + '/'); %>
-        <a class="nav-item <%= active ? 'active' : '' %>" href="<%= url %>" <%- active ? 'aria-current="page"' : '' %>><%- include('icon', { name: icon }) %><%= label %><% if (active) { %><span class="nav-dot"></span><% } %></a>
+    <%- include('brand') %>
+    <nav class="nav-list" aria-label="Workspace">
+      <% menus[role].forEach(([url, label, icon]) => {
+        const active = currentPath === url || (url !== '/' + role && currentPath.startsWith(url + '/')); %>
+        <a class="nav-item <%= active ? 'active' : '' %>" href="<%= url %>" <% if (active) { %>aria-current="page"<% } %>>
+          <%- include('icon', { name: icon }) %><%= label %>
+        </a>
       <% }) %>
     </nav>
-    <div class="sidebar-bottom">
-      <div class="help-card"><span class="eyebrow">A LITTLE GUIDANCE</span><h3>Your next step,<br>made simpler.</h3><p>Explore courses and plan a semester that feels like you.</p><a href="/catalog/courses">Explore the catalog <span aria-hidden="true">↗</span></a></div>
-      <a class="nav-item" href="/student/profile"><%- include('icon', { name: 'user' }) %>My profile</a>
-      <a class="account" href="/student/profile"><span class="avatar">AM</span><span><strong><%= user.name %></strong><small><%= role.charAt(0).toUpperCase() + role.slice(1) %> preview</small></span></a>
-    </div>
+    <% if (!user) { %>
+      <div class="sidebar-bottom"><a class="button secondary full" href="/auth/login">Sign in</a></div>
+    <% } %>
   </aside>
+  <button class="menu-scrim" type="button" data-menu-close aria-label="Close navigation" tabindex="-1"></button>
   <div class="workspace">
     <header class="topbar">
-      <div class="topbar-left"><button class="icon-button mobile-menu" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false" data-menu><%- include('icon', { name: 'menu' }) %></button><span class="breadcrumb">Campus <span>/</span> <strong><%= role.charAt(0).toUpperCase() + role.slice(1) %> portal</strong></span></div>
-      <div class="topbar-right"><span class="term"><span class="status-dot"></span><%= termLabel %></span><label class="sr-only" for="workspace-picker">Preview workspace</label><select id="workspace-picker" data-workspace><option value="/student" <%= role === 'student' ? 'selected' : '' %>>Student preview</option><option value="/faculty" <%= role === 'faculty' ? 'selected' : '' %>>Faculty preview</option><option value="/admin" <%= role === 'admin' ? 'selected' : '' %>>Admin preview</option></select></div>
+      <div class="topbar-left">
+        <button class="icon-button mobile-menu" type="button" aria-label="Toggle navigation"
+          aria-controls="sidebar" aria-expanded="false" data-menu>
+          <%- include('icon', { name: 'menu' }) %>
+        </button>
+        <span class="breadcrumb"><%= role === 'guest' ? 'Course catalog' : role[0].toUpperCase() + role.slice(1) + ' workspace' %></span>
+      </div>
+      <div class="topbar-right">
+        <span class="term"><span class="status-dot"></span><%= termLabel %></span>
+        <% if (preview) { %>
+          <label class="sr-only" for="workspace-picker">Preview workspace</label>
+          <select id="workspace-picker" data-workspace>
+            <% ['student', 'faculty', 'admin'].forEach(workspace => { %>
+              <option value="/<%= workspace %>" <%= workspace === role ? 'selected' : '' %>><%= workspace %> preview</option>
+            <% }) %>
+          </select>
+        <% } %>
+        <%- include(user ? 'profile-menu' : 'appearance-trigger') %>
+      </div>
     </header>
     <main id="main" class="main-content">
-      <div class="preview-bar"><span class="preview-tag">UI PREVIEW</span> Sample records · changes are not saved <a href="/auth/login">Sign-in design <span aria-hidden="true">↗</span></a></div>
+      <% if (preview) { %><p class="preview-bar">UI preview · Sample records</p><% } %>
+      <% if (notice) { %><p class="notice success-notice" role="status" data-arrival><%- include('icon', { name: 'check' }) %><%= notice %></p><% } %>

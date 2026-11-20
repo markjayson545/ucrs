@@ -35,12 +35,18 @@ const userSchema = new mongoose.Schema({
         isActive: {
             type: Boolean,
             default: true},
+        authVersion: {
+            type: Number,
+            default: 0,
+        },
     }, {timestamps: true}                  // adds createdAt and updatedAt
 );
 
 userSchema.pre('save', async function (){
    if (!this.isModified('password')) return;
    this.password = await bcrypt.hash(this.password, 12);
+   // A password change invalidates previously issued sessions and bearer tokens.
+   if (!this.isNew) this.authVersion = (this.authVersion ?? 0) + 1;
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
@@ -50,6 +56,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.set('toJSON', {
     transform: (doc, ret) => {
         delete ret.password;
+        delete ret.authVersion;
         delete ret.__v;
         return ret;
     }

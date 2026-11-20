@@ -1,0 +1,30 @@
+<dialog id="appearance-dialog" class="appearance-dialog" aria-labelledby="appearance-title" aria-describedby="appearance-description">
+  <h2 id="appearance-title">Appearance</h2>
+  <p id="appearance-description">Your settings apply across workspaces in this browser.</p>
+  <form data-appearance-form>
+    <fieldset>
+      <legend>Theme</legend>
+      <div class="theme-options">
+        <% [['light', 'Light', 'sun'], ['dark', 'Dark', 'moon'], ['system', 'System', 'monitor']].forEach(([value, label, icon]) => { %>
+          <label class="theme-option">
+            <input type="radio" name="mode" value="<%= value %>">
+            <%- include('icon', { name: icon }) %><span><%= label %></span>
+          </label>
+        <% }) %>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Accent color</legend>
+      <div class="accent-options">
+        <% ['clay', 'teal', 'indigo', 'plum', 'moss'].forEach(accent => { %>
+          <label class="accent-option">
+            <input type="radio" name="accent" value="<%= accent %>">
+            <span class="accent-swatch" data-swatch="<%= accent %>" aria-hidden="true"></span>
+            <span><%= accent[0].toUpperCase() + accent.slice(1) %></span>
+          </label>
+        <% }) %>
+      </div>
+    </fieldset>
+  </form>
+  <form method="dialog" class="form-actions"><button class="button primary">Done</button></form>
+</dialog>

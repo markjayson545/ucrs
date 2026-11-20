@@ -1,0 +1,6 @@
+net:
+  bindIpAll: true
+replication:
+  replSetName: ucrs
+security:
+  keyFile: /tmp/ucrs-mongodb-key

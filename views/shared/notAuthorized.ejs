@@ -1,14 +1,11 @@
 <%- include('../partials/header') %>
 <section class="error-state">
   <span class="error-code">403</span>
-  <p class="eyebrow">A DIFFERENT WORKSPACE</p>
-  <h1>This page needs the right access.</h1>
-  <p>
-    Return to your workspace or sign in with the appropriate campus account.
-  </p>
+  <h1>This page needs the right access</h1>
+  <p>Return to your workspace or sign in with the appropriate campus account.</p>
   <div class="hero-actions">
-    <a href="/student" class="button primary">Back to overview</a
-    ><a href="/auth/login" class="button secondary">Sign-in design</a>
+    <a href="/<%= user ? (preview ? role : user.role) : 'auth/login' %>" class="button primary"><%= user ? 'Back to my workspace' : 'Sign in' %></a>
+    <a href="/catalog/courses" class="button secondary">Course catalog</a>
   </div>
 </section>
 <%- include('../partials/footer') %>

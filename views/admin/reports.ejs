@@ -1,46 +1,20 @@
-<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'A LITTLE PERSPECTIVE', description: 'Understand where your classrooms are filling up and where there’s room to grow.' }) %>
-<div class="stats-grid compact">
-  <% [['Total capacity','140'],['Enrolled seats','117'],['Available seats','23']].forEach(([label,value]) => { %>
-  <article class="stat-card">
-    <span><%= label %></span><strong><%= value %></strong
-    ><small>Illustrative section totals</small>
-  </article>
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'See how many seats are filled and where students are waiting for space.' }) %>
+<div class="stats-grid">
+  <% [['Total capacity', report.capacity], ['Seats taken', report.enrolled], ['Seats remaining', report.available], ['Waitlisted registrations', report.waitlisted]].forEach(([label, value]) => { %>
+    <article class="stat-card"><span><%= label %></span><strong><%= value %></strong></article>
   <% }) %>
 </div>
-<div class="content-split">
-  <section class="panel">
-    <div class="panel-heading">
-      <h2>Enrollment by section</h2>
-      <span class="badge"><%= term %></span>
-    </div>
-    <% sections.forEach(s => { %>
+<section class="panel">
+  <div class="panel-heading"><h2>Enrollment by section</h2><span class="badge"><%= term %> · <%= report.utilization %>% filled</span></div>
+  <% if (!report.sections.length) { %><p class="empty-state">No sections are scheduled for this term.</p><% } %>
+  <% report.sections.forEach(section => { %>
     <div class="report-row">
-      <div class="row-between">
-        <strong><%= s.course.code %> · <%= s.sectionCode %></strong
-        ><span><%= s.enrolledCount %> / <%= s.capacity %></span>
-      </div>
-      <meter
-        min="0"
-        max="<%= s.capacity %>"
-        value="<%= s.enrolledCount %>"
-        aria-label="<%= s.course.code %> seat occupancy"
-      ></meter
-      ><small class="muted"
-        ><%= s.capacity - s.enrolledCount %> seats remaining</small
-      >
+      <div class="row-between"><strong><%= section.course?.code || 'Course unavailable' %> · <%= section.sectionCode %></strong><span><%= section.enrolledCount %> / <%= section.capacity %></span></div>
+      <meter data-meter min="0" max="<%= section.capacity %>" value="<%= section.enrolledCount %>" aria-label="Seat occupancy"></meter>
+      <small class="muted"><%= section.capacity - section.enrolledCount %> seats remaining · <%= section.waitlisted %> waitlisted</small>
     </div>
-    <% }) %>
-  </section>
-  <aside class="panel">
-    <span class="eyebrow">THE BIG PICTURE</span>
-    <h2>Room to grow.</h2>
-    <p class="muted">
-      Seat utilization across the sample sections is 84%. One section is full.
-    </p>
-    <div class="notice">
-      Sample totals represent seat enrollments, rather than unique students.
-    </div>
-    <a href="/admin/sections" class="text-link">Review section capacity ↗</a>
-  </aside>
-</div>
+  <% }) %>
+  <p class="table-note">Totals count seats across sections, so a student can account for more than one seat.</p>
+</section>
 <%- include('../partials/footer') %>

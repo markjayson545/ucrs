@@ -6,7 +6,12 @@ const { success } = require('../utils/response');
 
 exports.register = asyncHandler(async (req, res) => {
     const { name, email, password, idNumber, department } = req.body;
-    const user = await User.create({ name, email, password, idNumber, department, role: 'student'});
+    const user = await User.create({
+        name, email, password, idNumber: idNumber || undefined, department, role: 'student'
+    });
+    if (req.baseUrl === '/auth' && req.is('application/x-www-form-urlencoded')) {
+        return res.redirect(303, '/auth/login?registered=1');
+    }
     success(res, { user, token: signToken(user)}, 201);
 });
 

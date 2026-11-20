@@ -9,7 +9,10 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
    const payload = jwt.verify(token, process.env.JWT_SECRET);
    const user = await User.findById(payload.id);
-   if (!user || !user.active) throw new AppError('User not found or inactive', 401);
+   if (!user || !user.isActive) throw new AppError('User not found or inactive', 401);
+   if ((payload.authVersion ?? 0) !== user.authVersion) {
+       throw new AppError('Password changed. Sign in again.', 401);
+   }
 
    req.user = user;
    next();

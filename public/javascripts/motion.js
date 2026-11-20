@@ -13,9 +13,9 @@
       if (!elements.length) return;
       return gsap.from(elements, {
         opacity: 0,
-        y: 16,
-        duration: 0.65,
-        stagger: 0.07,
+        y: 12,
+        duration: 0.45,
+        stagger: 0.05,
         ease: "power3.out",
         clearProps: "opacity,transform",
         ...options,
@@ -27,31 +27,25 @@
     enter(
       ".page-heading > *, .detail-hero > *, .auth-form-wrap > *, .landing-hero > div:first-child > *",
       {
-        delay: 0.08,
-        stagger: 0.09,
+        delay: 0.05,
+        stagger: 0.05,
       },
     );
-    enter(".welcome-banner, .catalog-banner, .hero-art, .auth-story > div", {
-      delay: 0.14,
-      y: 22,
-      duration: 0.85,
-    });
-    enter(".welcome-art .art-book, .hero-art .arch, .auth-art span", {
-      delay: 0.3,
-      y: 24,
-      duration: 1.1,
-      stagger: 0.12,
+    enter(".welcome-banner, .catalog-banner, .hero-photo, .auth-story-copy", {
+      delay: 0.10,
+      y: 16,
+      duration: 0.55,
     });
 
     // Reveal only when a group enters the viewport. No CSS hides content first.
     const groups = select(
-      ".stats-grid, .course-grid, .three-grid, .dashboard-grid, .content-split, .week-grid",
+      ".stats-grid, .course-grid, .three-grid, .content-split, .week-grid",
     );
     const grouped = new Set(
       groups.flatMap((group) => Array.from(group.children)),
     );
     const standalone = select(
-      ".panel, .section-heading, .landing-portals > .row-between",
+      ".panel, .section-heading, .showcase-heading",
     ).filter(
       (element) =>
         !grouped.has(element) &&
@@ -63,33 +57,48 @@
         : [element];
       gsap.from(targets, {
         opacity: 0,
-        y: 18,
-        duration: 0.65,
-        stagger: 0.08,
+        y: 12,
+        duration: 0.4,
+        stagger: { amount: 0.2 },
         ease: "power2.out",
         clearProps: "opacity,transform",
         scrollTrigger: { trigger: element, start: "top 94%", once: true },
       });
     });
 
-    // Dialog focus/semantics remain native; GSAP adds a brief spring entrance.
-    const dialog = document.querySelector("#preview-dialog");
-    context.add("openDialog", () => {
-      gsap.fromTo(
-        dialog,
-        { opacity: 0, y: 18, scale: 0.96 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.38,
-          ease: "back.out(1.25)",
-          overwrite: true,
-          clearProps: "opacity,transform",
-        },
-      );
+    // Animate details where they become visible, including long schedules and reports.
+    for (const element of select("[data-arrival]")) {
+      gsap.from(element, {
+        opacity: 0,
+        y: 8,
+        duration: 0.32,
+        ease: "power2.out",
+        clearProps: "opacity,transform",
+        scrollTrigger: { trigger: element, start: "top 98%", once: true },
+      });
+    }
+    for (const meter of select("[data-meter]")) {
+      gsap.fromTo(meter, { clipPath: "inset(0 100% 0 0)" }, {
+        clipPath: "inset(0 0% 0 0)",
+        duration: 0.46,
+        clearProps: "clipPath",
+        scrollTrigger: { trigger: meter, start: "top 98%", once: true },
+      });
+    }
+
+    context.add("openMenu", () => {
+      enter(".sidebar .nav-item", { y: 0, x: -6, duration: 0.22, stagger: { amount: 0.12 }, overwrite: true });
     });
-    dialog?.addEventListener("portal:open", context.openDialog);
+    document.addEventListener("portal:menu", context.openMenu);
+
+    // Native dialog handles focus. GSAP animates its entrance after it opens.
+    context.add("openDialog", (event) => {
+      gsap.from(event.target, {
+        opacity: 0, y: 12, scale: 0.98, duration: 0.28, ease: "power2.out",
+        overwrite: true, clearProps: "opacity,transform",
+      });
+    });
+    document.addEventListener("portal:open", context.openDialog);
 
     // Feedback appears with its message, rather than animating the form's layout.
     context.add("showFeedback", (event) => {
@@ -113,14 +122,15 @@
       while (element && element !== document.body) {
         const tweens = gsap.getTweensOf(element);
         tweens.forEach((tween) => {
-          if (tween.scrollTrigger || tween.isActive()) tween.progress(1);
+          if (tween.progress() < 1) tween.progress(1);
         });
         element = element.parentElement;
       }
     };
     document.addEventListener("focusin", focusTarget);
     return () => {
-      dialog?.removeEventListener("portal:open", context.openDialog);
+      document.removeEventListener("portal:menu", context.openMenu);
+      document.removeEventListener("portal:open", context.openDialog);
       document.removeEventListener("portal:feedback", context.showFeedback);
       document.removeEventListener("focusin", focusTarget);
     };
@@ -135,7 +145,7 @@
         .toArray(".course-card, .portal-card, .button, .round-link")
         .forEach((control) => {
           const artwork = control.querySelector(
-            ".course-art > .icon, .mini-icon, .icon",
+            ".mini-icon, .icon",
           );
           if (!artwork) return;
           const isCard = control.matches(".course-card, .portal-card");

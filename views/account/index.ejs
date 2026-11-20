@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'ACCOUNT', description: 'Manage your profile, sign-in details, and appearance.' }) %>
+
+<div class="content-split account-layout">
+  <section class="panel" aria-labelledby="profile-heading">
+    <div class="panel-heading"><h2 id="profile-heading">Profile</h2></div>
+    <dl class="account-meta">
+      <div><dt>Role</dt><dd><%= { student: 'Student', faculty: 'Faculty', admin: 'Administrator' }[role] %></dd></div>
+      <div><dt>Campus ID</dt><dd><%= user.idNumber || 'Unassigned' %></dd></div>
+    </dl>
+    <form action="/account/profile" method="post" <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+      <div class="form-grid">
+        <div><label for="name">Full name</label><input id="name" name="name" value="<%= user.name %>" autocomplete="name" required maxlength="100"></div>
+        <div><label for="email">University email</label><input id="email" name="email" type="email" value="<%= user.email %>" autocomplete="email" required></div>
+        <div><label for="department">Department</label><input id="department" name="department" value="<%= user.department || '' %>" maxlength="100"></div>
+        <div>
+          <label for="profile-password">Current password</label>
+          <input id="profile-password" name="currentPassword" type="password" autocomplete="current-password" aria-describedby="profile-password-hint">
+          <p class="field-hint" id="profile-password-hint">Required when changing your email.</p>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="button primary" type="submit" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview profile save' : 'Save profile' %></button>
+      </div>
+      <div class="form-feedback" aria-live="polite" hidden></div>
+    </form>
+  </section>
+
+  <section class="panel" id="security" aria-labelledby="security-heading">
+    <div class="panel-heading"><h2 id="security-heading">Change password</h2></div>
+    <p class="muted">Changing your password signs you out on other devices.</p>
+    <form class="password-settings" action="/account/password" method="post" <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+      <div><label for="current-password">Current password</label><input id="current-password" name="currentPassword" type="password" autocomplete="current-password" required></div>
+      <div>
+        <label for="new-password">New password</label>
+        <input id="new-password" name="newPassword" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-length">
+        <p class="field-hint" id="password-length">Use at least 8 characters.</p>
+      </div>
+      <div><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required></div>
+      <div class="form-actions">
+        <button class="button primary" type="submit" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview password change' : 'Update password' %></button>
+      </div>
+      <div class="form-feedback" aria-live="polite" hidden></div>
+    </form>
+  </section>
+
+  <section class="panel" aria-labelledby="preferences-heading">
+    <div class="panel-heading"><h2 id="preferences-heading">Appearance</h2></div>
+    <p class="muted">Set your theme and accent for this browser.</p>
+    <%- include('../partials/appearance-trigger') %>
+  </section>
+</div>
+<%- include('../partials/footer') %>

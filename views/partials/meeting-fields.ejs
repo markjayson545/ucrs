@@ -1,0 +1,14 @@
+<div class="meeting-fields" data-meeting>
+  <div class="form-grid">
+    <div>
+      <label for="day-<%= index %>">Day</label>
+      <select id="day-<%= index %>" name="meetings[<%= index %>][day]">
+        <% days.forEach(day => { %><option <%= meeting.day === day ? 'selected' : '' %>><%= day %></option><% }) %>
+      </select>
+    </div>
+    <div><label for="room-<%= index %>">Room</label><input id="room-<%= index %>" name="meetings[<%= index %>][room]" value="<%= meeting.room || '' %>" placeholder="Tech 301"></div>
+    <div><label for="start-<%= index %>">Starts at</label><input id="start-<%= index %>" name="meetings[<%= index %>][start]" value="<%= formatTime(meeting.start) %>" pattern="[0-9]{2}:[0-9]{2}" maxlength="5" required data-start></div>
+    <div><label for="end-<%= index %>">Ends at</label><input id="end-<%= index %>" name="meetings[<%= index %>][end]" value="<%= formatTime(meeting.end) %>" pattern="[0-9]{2}:[0-9]{2}" maxlength="5" required data-end></div>
+  </div>
+  <button class="text-button danger" type="button" data-remove-meeting hidden>Remove meeting</button>
+</div>

@@ -1,5 +1,5 @@
 function errorHandler(err, req, res, next) {
-    let status = err.status || 500;
+    let status = err.statusCode || err.status || 500;
     let message = err.message || 'Internal Server Error';
     let errors = err.errors || undefined;
 
@@ -25,6 +25,20 @@ function errorHandler(err, req, res, next) {
     if (status === 500) {
         console.error(err);
         if (process.env.NODE_ENV === 'production') message = 'Internal Server Error';
+    }
+
+    if (res.locals.pageRequest && req.get('X-Portal-Form') === '1') {
+        if (status >= 500) message = 'The portal could not save your changes. Try again.';
+        return res.status(status).json({ success: false, message, errors });
+    }
+
+    if (res.locals.pageRequest) {
+        return res.status(status).render('shared/error', {
+            title: status === 404 ? 'Page not found' : 'Unable to continue',
+            status,
+            message,
+            errors,
+        });
     }
 
     const body = {success: false, message};

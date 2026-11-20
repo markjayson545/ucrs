@@ -5,18 +5,18 @@ exports.idParam = [
 ];
 
 exports.createRules = [
-    body('code').trim().notEmpty().withMessage('course code is required'),
-    body('title').trim().notEmpty().withMessage('course title is required'),
-    body('department').trim().notEmpty().withMessage('department is required'),
-    body('credits').isInt({min: 1, max: 6}).withMessage('credits must be between 1 and 6').toInt(),
+    body('code').trim().notEmpty().withMessage('Enter a course code.'),
+    body('title').trim().notEmpty().withMessage('Enter a course title.'),
+    body('department').trim().notEmpty().withMessage('Enter a department.'),
+    body('credits').isInt({min: 1, max: 6}).withMessage('Enter a whole number of credits from 1 to 6.').toInt(),
     body('prerequisites').optional().isArray().withMessage('prerequisites must be an array'),
     body('prerequisites.*').isMongoId().withMessage('each prerequisite must be a valid course ID')
 ];
 
 exports.updateRules = [
-    body('title').optional().trim().notEmpty(),
-    body('department').optional().trim().notEmpty(),
-    body('credits').optional().isInt({min: 1, max: 6}),
+    body('title').optional().trim().notEmpty().withMessage('Enter a course title.'),
+    body('department').optional().trim().notEmpty().withMessage('Enter a department.'),
+    body('credits').optional().isInt({min: 1, max: 6}).withMessage('Enter a whole number of credits from 1 to 6.'),
     body('prerequisites').optional().isArray(),
     body('prerequisites.*').optional().isMongoId().withMessage('Invalid prerequisite course ID')
 ];

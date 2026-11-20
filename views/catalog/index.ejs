@@ -1,7 +1,45 @@
 <%- include('../partials/header') %>
-<%- include('../partials/page-heading', { eyebrow: 'THE COURSE CATALOG', description: 'A new skill. A different perspective. A course that opens a door.' }) %>
-<section class="catalog-banner"><div><span class="eyebrow">MAKE THIS SEMESTER YOURS</span><h2>Follow your curiosity.</h2><p>Explore ideas across disciplines and find your next great class.</p></div><div class="banner-art" aria-hidden="true"><span></span><span></span><span></span></div></section>
-<form class="filter-bar" action="/catalog/courses" method="get"><div class="search-field"><%- include('../partials/icon', { name: 'search' }) %><label class="sr-only" for="q">Search courses</label><input id="q" name="q" value="<%= q %>" placeholder="Search by course name or code…" type="search"></div><label class="sr-only" for="department">Department</label><select id="department" name="department"><option value="">All departments</option><% ['Computer Science','Mathematics','Humanities'].forEach(d => { %><option <%= department === d ? 'selected' : '' %>><%= d %></option><% }) %></select><button class="button primary" type="submit">Find courses</button></form>
-<div class="section-heading"><h2>Explore courses <span class="count"><%= courses.length %></span></h2><span class="muted">First semester · 2026–2027</span></div>
-<% if (courses.length) { %><div class="course-grid"><% courses.forEach(course => { %><%- include('../partials/course-card', { course }) %><% }) %></div><% } else { %><div class="empty-state"><%- include('../partials/icon', { name: 'search' }) %><h2>No courses found</h2><p>Try another keyword or browse all departments.</p><a class="button secondary" href="/catalog/courses">Clear filters</a></div><% } %>
+<%- include('../partials/page-heading', { eyebrow: 'COURSE CATALOG', description: 'Search by course code or title, or browse by department.' }) %>
+<section class="catalog-banner">
+  <div class="banner-copy"><h2>Find your next course.</h2><p>Browse courses and compare prerequisites, meeting times, and seat availability for <%= term %>.</p></div>
+  <div class="banner-photo"><img src="/images/library-study.webp" width="1200" height="800" alt=""></div>
+</section>
+<form class="filter-bar" action="/catalog/courses" method="get">
+  <div class="search-field">
+    <label for="q">Course name or code</label>
+    <input id="q" name="q" value="<%= q %>" maxlength="100" placeholder="Search by course name or code…" type="search">
+  </div>
+  <div>
+    <label for="department">Department</label>
+    <select id="department" name="department">
+      <option value="">All departments</option>
+      <% departments.forEach(name => { %>
+        <option <%= department === name ? 'selected' : '' %>><%= name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button class="button primary" type="submit"><%- include('../partials/icon', { name: 'search' }) %> Find courses</button>
+</form>
+<div class="section-heading">
+  <h2><%= q || department ? 'Search results' : 'All courses' %> <span class="count"><%= meta.total %></span></h2>
+  <% if ((q || department) && courses.length) { %><a class="text-link" href="/catalog/courses">Clear filters</a><% } %>
+</div>
+<% if (courses.length) { %>
+  <div class="course-grid">
+    <% courses.forEach(course => { %><%- include('../partials/course-card', { course }) %><% }) %>
+  </div>
+<% } else { %>
+  <div class="empty-state">
+    <%- include('../partials/icon', { name: 'search' }) %>
+    <h2>No courses found</h2><p>Try another keyword or browse all departments.</p>
+    <a class="button secondary" href="/catalog/courses">Clear filters</a>
+  </div>
+<% } %>
+<% if (meta.pages > 1) { %>
+  <nav class="form-actions" aria-label="Catalog pages">
+    <% if (meta.page > 1) { %><a class="button secondary" href="<%= pageLink(meta.page - 1) %>">Previous</a><% } %>
+    <span class="muted">Page <%= meta.page %> of <%= meta.pages %></span>
+    <% if (meta.page < meta.pages) { %><a class="button secondary" href="<%= pageLink(meta.page + 1) %>">Next</a><% } %>
+  </nav>
+<% } %>
 <%- include('../partials/footer') %>

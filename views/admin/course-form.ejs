@@ -1,50 +1,40 @@
 <%- include('../partials/header') %>
 <a class="back-link" href="/admin/courses">← Course management</a>
-<%- include('../partials/page-heading', { eyebrow: 'MAKE ROOM FOR LEARNING', description: course ? 'Refine the details that help students find their next course.' : 'Give a new idea a place in the curriculum.' }) %>
-<div class="content-split">
-<form class="panel" data-preview-form inert>
-<div class="panel-heading">
-<h2>Course details</h2>
-<span class="badge">UI preview</span>
-</div>
-<div class="form-grid">
-<div>
-<label for="code">Course code</label>
-<input id="code" name="code" value="<%= course ? course.code : '' %>" placeholder="CS 301" required <%= course ? 'readonly' : '' %>><% if (course) { %><p class="field-hint">Course codes stay fixed after creation.</p><% } %></div>
-<div>
-<label for="credits">Credits</label>
-<input id="credits" name="credits" type="number" min="1" max="6" step="1" value="<%= course ? course.credits : 3 %>" required>
-</div>
-</div>
-<label for="title">Course title</label>
-<input id="title" name="title" value="<%= course ? course.title : '' %>" placeholder="A name that opens a door" required>
-<label for="department">Department</label>
-<select id="department" name="department" required>
-<option value="">Select department</option><% ['Computer Science','Mathematics','Humanities'].forEach(d => { %><option <%= course && course.department === d ? 'selected' : '' %>><%= d %></option><% }) %></select>
-<label for="description">Description</label>
-<textarea id="description" name="description" rows="5" placeholder="What will students discover?"><%= course ? course.description : '' %></textarea>
-<fieldset>
-<legend>Prerequisite courses <span class="optional">(optional)</span>
-</legend>
-<p class="field-hint">Choose courses students should complete first.</p>
-<div class="check-grid"><% courses.filter(c => !course || c._id !== course._id).forEach(c => { %><label class="checkbox-label">
-<input type="checkbox" name="prerequisites" value="<%= c._id %>" <%= course && course.prerequisites.some(p => p.code === c.code) ? 'checked' : '' %>>
-<span>
-<strong><%= c.code %></strong> · <%= c.title %></span>
-</label><% }) %></div>
-</fieldset>
-<div class="form-actions">
-<button type="submit" disabled class="button primary"><%= course ? 'Preview changes' : 'Preview course' %></button>
-<a class="button secondary" href="/admin/courses">Cancel</a>
-</div>
-<p class="form-feedback" role="status" hidden>
-</p>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Set the details students will see in the catalog.' }) %>
+<form class="panel form-panel" method="post" action="<%= course ? '/admin/courses/' + course._id + '/edit' : '/admin/courses' %>"
+  <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+  <div class="form-grid">
+    <div>
+      <label for="code">Course code</label>
+      <input id="code" name="code" value="<%= course?.code || '' %>" placeholder="CS 301" required <%= course ? 'readonly' : '' %>>
+      <% if (course) { %><p class="field-hint">Course codes stay fixed after creation.</p><% } %>
+    </div>
+    <div><label for="credits">Credits</label><input id="credits" name="credits" type="number" min="1" max="6" step="1" value="<%= course?.credits ?? 3 %>" required></div>
+  </div>
+  <label for="title">Course title</label>
+  <input id="title" name="title" value="<%= course?.title || '' %>" required>
+  <label for="department">Department</label>
+  <input id="department" name="department" value="<%= course?.department || '' %>" required>
+  <label for="description">Description</label>
+  <textarea id="description" name="description" rows="5"><%= course?.description || '' %></textarea>
+  <% const choices = courses.filter(candidate => !course || String(candidate._id) !== String(course._id)); %>
+  <% if (choices.length) { %>
+    <fieldset>
+      <legend>Prerequisite courses <span class="optional">(optional)</span></legend>
+      <div class="check-grid">
+        <% choices.forEach(candidate => { %>
+          <label class="checkbox-label">
+            <input type="checkbox" name="prerequisites" value="<%= candidate._id %>" <%= course?.prerequisites.some(prerequisite => prerequisite.code === candidate.code) ? 'checked' : '' %>>
+            <span><strong><%= candidate.code %></strong> · <%= candidate.title %></span>
+          </label>
+        <% }) %>
+      </div>
+    </fieldset>
+  <% } %>
+  <div class="form-actions">
+    <button type="submit" class="button primary" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview course' : 'Save course' %></button>
+    <a class="button secondary" href="/admin/courses">Cancel</a>
+  </div>
+  <div class="form-feedback" aria-live="polite" hidden></div>
 </form>
-<aside class="panel">
-<span class="mini-icon"><%- include('../partials/icon', { name: 'book' }) %></span>
-<h2>Clarity helps everyone.</h2>
-<p class="muted">Use a unique course code and a description that tells students what they’ll learn.</p>
-<p class="notice">This preview doesn’t save to the catalog. Your existing course API is unchanged.</p>
-</aside>
-</div>
 <%- include('../partials/footer') %>

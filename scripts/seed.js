@@ -16,8 +16,7 @@ async function seedAdmin() {
         uri = uri.replace('@mongodb:', '@127.0.0.1:');
     }
 
-    const email = (process.env.ADMIN_EMAIL || 'admin@ucrs.test').toLowerCase();
-    const password = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
+    const email = (process.env.ADMIN_EMAIL || 'admin@ucrs.test').trim().toLowerCase();
     const name = process.env.ADMIN_NAME || 'System Admin';
 
     try {
@@ -28,6 +27,10 @@ async function seedAdmin() {
         let admin = await User.findOne({ email });
 
         if (!admin) {
+            const password = process.env.ADMIN_PASSWORD;
+            if (!password || password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) {
+                throw new Error('Set ADMIN_PASSWORD to at least 8 characters and at most 72 bytes.');
+            }
             admin = await User.create({
                 name,
                 email,
@@ -39,20 +42,14 @@ async function seedAdmin() {
             console.log(`  Name:     ${admin.name}`);
             console.log(`  Email:    ${admin.email}`);
             console.log(`  Role:     ${admin.role}`);
-            console.log(`  Password: ${password}`);
         } else {
-            let updated = false;
             if (admin.role !== 'admin') {
-                admin.role = 'admin';
-                updated = true;
+                throw new Error('ADMIN_EMAIL belongs to a non-admin account. Choose another email.');
             }
             if (!admin.isActive) {
                 admin.isActive = true;
-                updated = true;
-            }
-            if (updated) {
                 await admin.save();
-                console.log(`Admin user '${email}' already exists; ensured role='admin' and isActive=true.`);
+                console.log(`Administrator '${email}' reactivated.`);
             } else {
                 console.log(`Admin user already exists (${admin.email}) with role '${admin.role}'.`);
             }

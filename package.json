@@ -6,8 +6,12 @@
     "assets:vendor": "node scripts/copy-vendor.js",
     "predev:views": "node scripts/copy-vendor.js",
     "dev:views": "node --watch scripts/preview-views.js",
+    "precheck:views": "node scripts/copy-vendor.js",
     "check:views": "node scripts/check-views.js",
+    "check:system": "node scripts/check-system.js",
+    "prestart": "node scripts/copy-vendor.js",
     "start": "node ./bin/www",
+    "predev": "node scripts/copy-vendor.js",
     "dev": "node --watch ./bin/www",
     "seed": "node scripts/seed.js"
   },

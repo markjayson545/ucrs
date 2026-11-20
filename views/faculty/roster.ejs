@@ -1,48 +1,30 @@
 <%- include('../partials/header') %>
 <a class="back-link" href="/faculty/sections">← My sections</a>
-<%- include('../partials/page-heading', { eyebrow: section.course.code + ' / SECTION ' + section.sectionCode, description: section.course.title, action: { href: '/faculty/sections/' + section._id + '/grades', label: 'Open gradebook', icon: 'chart' } }) %>
-<div class="notice">
-  Showing <%= students.length %> illustrative student records. Sample section
-  occupancy: <%= section.enrolledCount %> / <%= section.capacity %>.
-</div>
+<%- include('../partials/page-heading', { eyebrow: section.course?.code + ' / SECTION ' + section.sectionCode, description: section.course?.title, action: { href: '/faculty/sections/' + section._id + '/grades', label: 'Open gradebook', icon: 'chart' } }) %>
 <section class="panel">
   <div class="panel-heading">
-    <h2>Registered students</h2>
-    <label class="sr-only" for="roster-search">Search roster</label
-    ><input
-      id="roster-search"
-      type="search"
-      placeholder="Search name or student ID"
-      data-table-search="roster-table"
-    />
+    <h2>Registered students <span class="count"><%= records.length %></span></h2>
+    <% if (records.length) { %>
+      <%- include('../partials/table-search', { inputId: 'roster-search', label: 'Search roster', hint: 'Name or student ID', tableId: 'roster-table' }) %>
+    <% } %>
   </div>
-  <div class="table-wrap">
-    <table id="roster-table">
-      <caption class="sr-only">
-        Sample class roster
-      </caption>
-      <thead>
-        <tr>
-          <th>Student</th>
-          <th>Student ID</th>
-          <th>Email</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% students.forEach(s => { %>
-        <tr>
-          <td><strong><%= s.name %></strong></td>
-          <td><%= s.idNumber %></td>
-          <td><%= s.email %></td>
-          <td><span class="badge success">Enrolled</span></td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-  <p data-empty-for="roster-table" class="empty-state" hidden>
-    No students match your search.
-  </p>
+  <% if (!records.length) { %><p class="empty-state">No students have enrolled in this section.</p><% } else { %>
+    <div class="table-wrap">
+      <table id="roster-table">
+        <caption class="sr-only">Class roster</caption>
+        <thead><tr><th>Student</th><th>Student ID</th><th>Email</th><th>Status</th></tr></thead>
+        <tbody>
+          <% records.forEach(({ student, status }) => { %>
+            <tr>
+              <td><strong><%= student.name %></strong></td><td><%= student.idNumber || '—' %></td>
+              <td><%= student.email %></td><td><span class="badge"><%= status %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <%- include('../partials/table-search-count', { tableId: 'roster-table' }) %>
+    <p data-empty-for="roster-table" class="empty-state" hidden>No students match your search.</p>
+  <% } %>
 </section>
 <%- include('../partials/footer') %>

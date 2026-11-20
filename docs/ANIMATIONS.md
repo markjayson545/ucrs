@@ -1,37 +1,44 @@
 # Working with the view animations
 
-The views use [GSAP](https://gsap.com/docs/v3/) and [ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/). Both are installed through npm and served locally. There are no API calls in the animation layer.
+[The shared head](../views/partials/head.ejs) loads GSAP, ScrollTrigger, `portal.js`, and `motion.js` in that order. The libraries are copied from npm to `public/vendor/gsap` by [copy-vendor.js](../scripts/copy-vendor.js) before the app or preview starts.
 
-## Where to look
+## Where to edit
 
-- `views/partials/head.ejs` loads the libraries, then the existing interaction script, then `motion.js`. Deferred scripts execute in this order.
-- `public/javascripts/motion.js` defines shared entrances, scroll reveals, dialog feedback, and hover motion.
-- `public/javascripts/portal.js` owns form and navigation behavior. It dispatches `portal:open` and `portal:feedback` events for the animation layer to observe.
-- `scripts/copy-vendor.js` refreshes local assets before `npm run dev:views`. Run `npm run assets:vendor` after changing the dependency version for other entry points.
+| Effect | File and hook |
+| --- | --- |
+| Page headings, welcome art, and staged card entrances | [motion.js](../public/javascripts/motion.js) uses the existing CSS class names |
+| A class meeting or an enrollment confirmation entering view | `motion.js` looks for `data-arrival` |
+| A seat-occupancy meter entering view | `motion.js` looks for `data-meter` |
+| Dialog, mobile navigation, search empty state, or a newly added meeting | [portal.js](../public/javascripts/portal.js) updates the element, then dispatches `portal:open`, `portal:menu`, or `portal:feedback` |
+| Workspace screenshot change | [showcase.js](../public/javascripts/showcase.js) activates the selected tab, then dispatches `portal:feedback` on the new panel |
+| Submit spinner, button press, mobile drawer and backdrop | [portal.css](../public/stylesheets/portal.css) styles the browser state |
 
-## Follow this pattern
+## Reuse an effect
 
-GSAP's `from()` animates from a starting appearance to the element's existing CSS appearance. `stagger` offsets each item's start. `clearProps` releases the temporary inline styles when the animation finishes.
+Add `data-arrival` to an EJS element that should enter as it scrolls into view. The existing scroll trigger uses opacity and a short vertical offset and plays once.
 
-```js
-// Inside the existing no-preference matchMedia callback in motion.js:
-gsap.from(".your-new-card", {
-  opacity: 0,
-  y: 16,
-  duration: 0.65,
-  stagger: 0.08,
-  ease: "power2.out",
-  clearProps: "opacity,transform",
-  scrollTrigger: {
-    trigger: ".your-new-section",
-    start: "top 94%",
-    once: true,
-  },
-});
+```ejs
+<article class="section-option" data-arrival>
+  <h3>Section <%= section.sectionCode %></h3>
+</article>
 ```
 
-Prefer adding a new card inside an existing `.course-grid`, `.stats-grid`, or `.three-grid`; it will receive the shared stagger automatically. Avoid registering another tween on those same targets, because competing animations can overwrite one another.
+For content that appears after a click or another browser event, update the element first and dispatch the same feedback event used by the meeting form.
 
-The [GSAP matchMedia pattern](<https://gsap.com/docs/v3/GSAP/gsap.matchMedia()/>) automatically reverts the animations created inside it when the media query stops matching. Event-triggered animations are registered with `context.add()` so they are also tracked for cleanup. Hover listeners are removed by the callback's returned cleanup function.
+```js
+feedback.textContent = message;
+feedback.hidden = false;
+feedback.dispatchEvent(new Event('portal:feedback', { bubbles: true }));
+```
 
-Keep database queries and `res.render()` in your controllers. Animation code only runs in the browser after Express has rendered the EJS page.
+GSAP starts the effect after the content is ready. This keeps the display, form submission, and server response independent of animation timing. The CSS and JavaScript honor `prefers-reduced-motion`. Keyboard focus also finishes an entrance immediately when it reaches an animated control.
+
+## Follow the theme toggle
+
+[appearance-trigger.ejs](../views/partials/appearance-trigger.ejs) renders both icons. CSS displays the sun in Light mode and the moon in Dark mode. The button reports whether Dark mode is on, and the Appearance dialog still offers System mode and the accent choices.
+
+[appearance.js](../public/javascripts/appearance.js) calculates a radius that reaches the farthest corner from where you clicked or tapped. Keyboard activation starts the circle at the button’s center. The script applies the new mode in the View Transition update callback and saves it after the animation settles. Leaving the page mid-transition also saves the selection.
+
+[theme.css](../public/stylesheets/theme.css) expands the incoming Dark view or contracts the outgoing Dark view over 420 ms. The page capture and the icon animate separately. Regular control color transitions pause so the new theme is fully painted when the circle starts. With reduced motion or a browser that lacks View Transitions, the theme switches instantly. [View Transitions guide](https://developer.chrome.com/docs/web-platform/view-transitions/same-document)
+
+TweakCN’s button passes the click position to its provider, and its global stylesheet animates the incoming snapshot. [Toggle button](https://github.com/jnsahaj/tweakcn/blob/main/components/theme-toggle.tsx) · [Theme provider](https://github.com/jnsahaj/tweakcn/blob/main/components/theme-provider.tsx#L45-L65) · [Reveal CSS](https://github.com/jnsahaj/tweakcn/blob/main/app/globals.css#L93-L124)

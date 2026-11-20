@@ -1,0 +1,135 @@
+/* Every screen shares these roles. An accent changes links, focus, and primary actions. */
+:root {
+  color-scheme: light;
+  --paper: #f7f4ed;
+  --surface: #fffdf8;
+  --surface-raised: #ffffff;
+  --soft: #f0ebe1;
+  --ink: #251c18;
+  --muted: #64584f;
+  --border: #dbd2c3;
+  --control-border: #a89b8e;
+  --green: #21604d;
+  --green-soft: #e1f2e9;
+  --gold: #774318;
+  --gold-soft: #f9edce;
+  --danger: #9e3035;
+  --danger-soft: #fbe9ea;
+  --action: var(--accent-light);
+  --action-hover: var(--accent-hover);
+  --accent-text: var(--accent-light);
+  --on-action: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent-text) 10%, var(--surface));
+  --accent-border: color-mix(in srgb, var(--accent-text) 34%, var(--border));
+  --shadow: 0 8px 26px #3426190c;
+  --shadow-lg: 0 20px 64px #34261924;
+  --radius: 18px;
+  --radius-lg: 28px;
+  --font-body: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171518;
+  --surface: #221f23;
+  --surface-raised: #2b272b;
+  --soft: #312c32;
+  --ink: #faf0e8;
+  --muted: #cbbfb7;
+  --border: #4a4148;
+  --control-border: #877a82;
+  --green: #a6e1c5;
+  --green-soft: #243e36;
+  --gold: #f0ce8f;
+  --gold-soft: #483625;
+  --danger: #ffb0b7;
+  --danger-soft: #492930;
+  --action: var(--accent-dark);
+  --action-hover: var(--accent-dark-hover);
+  --accent-text: var(--accent-dark);
+  --on-action: #221917;
+  --shadow: 0 8px 26px #0000002a;
+  --shadow-lg: 0 20px 64px #00000050;
+}
+
+:root, .accent-swatch[data-swatch="clay"] {
+  --accent-light: #9c412d;
+  --accent-hover: #78301f;
+  --accent-dark: #ffa68b;
+  --accent-dark-hover: #ffc4b1;
+}
+
+:root[data-accent="teal"], .accent-swatch[data-swatch="teal"] {
+  --accent-light: #05665c;
+  --accent-hover: #004d46;
+  --accent-dark: #80dec8;
+  --accent-dark-hover: #a4efdb;
+}
+
+:root[data-accent="indigo"], .accent-swatch[data-swatch="indigo"] {
+  --accent-light: #414a9d;
+  --accent-hover: #323a7c;
+  --accent-dark: #b7bfff;
+  --accent-dark-hover: #d3d8ff;
+}
+
+:root[data-accent="plum"], .accent-swatch[data-swatch="plum"] {
+  --accent-light: #853f74;
+  --accent-hover: #653057;
+  --accent-dark: #f2addf;
+  --accent-dark-hover: #ffd0f0;
+}
+
+:root[data-accent="moss"], .accent-swatch[data-swatch="moss"] {
+  --accent-light: #4b601d;
+  --accent-hover: #384914;
+  --accent-dark: #cade88;
+  --accent-dark-hover: #dcf3a0;
+}
+
+/* Capture the theme button's icon separately so it can animate above the page reveal. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Change colors once so hover transitions do not run inside the page capture. */
+  :root[data-theme-transition] *,
+  :root[data-theme-transition] *::before,
+  :root[data-theme-transition] *::after { transition: none !important; }
+
+  [data-theme-active] .theme-toggle-icons { view-transition-name: theme-toggle-icon; }
+  :root[data-theme-transition]::view-transition-group(root),
+  :root[data-theme-transition]::view-transition-group(theme-toggle-icon),
+  :root[data-theme-transition]::view-transition-old(root),
+  :root[data-theme-transition]::view-transition-new(root) { animation: none; }
+
+  :root[data-theme-transition]::view-transition-old(root),
+  :root[data-theme-transition]::view-transition-new(root),
+  :root[data-theme-transition]::view-transition-old(theme-toggle-icon),
+  :root[data-theme-transition]::view-transition-new(theme-toggle-icon) { mix-blend-mode: normal; }
+
+  :root[data-theme-transition]::view-transition-image-pair(root) { isolation: auto; }
+  :root[data-theme-transition="to-dark"]::view-transition-new(root),
+  :root[data-theme-transition="to-light"]::view-transition-old(root) {
+    z-index: 1;
+    animation: theme-circle .42s cubic-bezier(.25, .6, .25, 1) both;
+  }
+  :root[data-theme-transition="to-light"]::view-transition-old(root) { animation-direction: reverse; }
+
+  :root[data-theme-transition]::view-transition-group(theme-toggle-icon) { z-index: 1; }
+  :root[data-theme-transition]::view-transition-old(theme-toggle-icon) {
+    animation: theme-icon-out .17s ease-in both;
+  }
+  :root[data-theme-transition]::view-transition-new(theme-toggle-icon) {
+    animation: theme-icon-in .26s .09s ease-out both;
+  }
+}
+
+@keyframes theme-circle {
+  from { clip-path: circle(0 at var(--theme-origin-x) var(--theme-origin-y)); }
+  to { clip-path: circle(var(--theme-radius) at var(--theme-origin-x) var(--theme-origin-y)); }
+}
+@keyframes theme-icon-out {
+  to { transform: rotate(-90deg) scale(0); opacity: 0; }
+}
+@keyframes theme-icon-in {
+  from { transform: rotate(90deg) scale(0); opacity: 0; }
+}

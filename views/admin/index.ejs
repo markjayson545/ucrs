@@ -1,35 +1,23 @@
-<%- include('../partials/header') %> <%- include('../partials/page-heading', { eyebrow: 'THE ADMINISTRATION WORKSPACE', description: 'Keep the academic essentials organized, so everyone can move forward.', action: { href: '/admin/courses/new', label: 'Create a course' } }) %>
-<section class="welcome-banner">
-  <div>
-    <span class="eyebrow">A CLEARER VIEW OF CAMPUS</span>
-    <h2>Good foundations.<br />Better possibilities.</h2>
-    <p>Courses, people, and planning. Connected.</p>
-    <a class="button light" href="/admin/reports"
-      >Explore semester reports <%- include('../partials/icon', { name: 'arrow' }) %></a
-    >
-  </div>
-  <div class="welcome-art" aria-hidden="true">
-    <div class="art-circle"></div>
-    <div class="art-book"></div>
-    <span>MAKE<br />CONNECTIONS.</span>
-  </div>
-</section>
+<%- include('../partials/header') %>
+<%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Manage the course catalog, teaching sections, and accounts.', action: { href: '/admin/courses/new', label: 'Create a course' } }) %>
+<%- include('../partials/workspace-banner', {
+  heading: 'Enrollment at a glance',
+  summary: 'Review seat capacity and waitlists for ' + term + '.',
+  href: '/admin/reports', label: 'Enrollment reports', photo: 'campus-courtyard.webp'
+}) %>
 <div class="stats-grid">
-  <% [['Courses',courses.length,'Across 3 departments'],['Open sections',sections.length,'First semester'],['Section enrollments','117','Sample occupancy total'],['Seat utilization','84%','117 of 140 seats filled']].forEach(([label,value,hint]) => { %>
-  <article class="stat-card">
-    <span><%= label %></span><strong><%= value %></strong
-    ><small><%= hint %></small>
-  </article>
+  <% [['Catalog courses', courseCount], ['Open sections', report.openSections], ['Seats taken', report.enrolled], ['Seat utilization', report.utilization + '%']].forEach(([label, value]) => { %>
+    <article class="stat-card"><span><%= label %></span><strong><%= value %></strong></article>
   <% }) %>
 </div>
 <div class="three-grid">
-  <% [['/admin/courses','Course catalog','Create and organize the building blocks of a degree.','book'],['/admin/sections','Section planning','Coordinate capacity, faculty, and classroom schedules.','calendar'],['/admin/users','People & access','Review the people who make your campus possible.','users']].forEach(([url,label,desc,icon]) => { %><a href="<%= url %>" class="portal-card"
-    ><span class="mini-icon"
-      ><%- include('../partials/icon', { name: icon }) %></span
-    >
-    <h2><%= label %></h2>
-    <p><%= desc %></p>
-    <span class="text-link">Open workspace ↗</span></a
-  ><% }) %>
+  <% [['/admin/courses', 'Courses', 'Create and update courses and prerequisites.', 'book'],
+      ['/admin/sections', 'Sections', 'Assign faculty, meeting times, and seat capacity.', 'calendar'],
+      ['/admin/users', 'People and access', 'Review accounts and manage roles.', 'users']].forEach(([url, label, description, icon]) => { %>
+    <a href="<%= url %>" class="portal-card">
+      <span class="mini-icon"><%- include('../partials/icon', { name: icon }) %></span>
+      <h2><%= label %></h2><p><%= description %></p><span class="text-link">Manage <%= label.toLowerCase() %> ↗</span>
+    </a>
+  <% }) %>
 </div>
 <%- include('../partials/footer') %>

@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<section class="error-state">
+  <span class="error-code"><%= status %></span>
+  <h1><%= title %></h1>
+  <p><%= message %></p>
+  <% if (Array.isArray(errors) && errors.length) { %>
+    <ul class="plain-list">
+      <% errors.forEach(error => { %><li><%= error.message %></li><% }) %>
+    </ul>
+  <% } %>
+  <a class="button primary" href="<%= typeof returnTo === 'string' ? returnTo : user ? '/' + user.role : '/catalog/courses' %>">Continue ↗</a>
+</section>
+<%- include('../partials/footer') %>

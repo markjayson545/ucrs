@@ -1,0 +1,35 @@
+<% const roleLabel = { student: 'Student', faculty: 'Faculty', admin: 'Administrator' }[role]; %>
+<% const accountUrl = preview ? '/account?role=' + role : '/account'; %>
+<% const initials = user.name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase(); %>
+<details class="profile-menu" data-profile-menu>
+  <summary class="profile-trigger">
+    <span class="sr-only">Account menu</span>
+    <span class="avatar" aria-hidden="true"><%= initials %></span>
+    <span class="profile-trigger-name" aria-hidden="true"><%= user.name %></span>
+    <span class="profile-chevron"><%- include('icon', { name: 'chevron' }) %></span>
+  </summary>
+  <div class="profile-popup">
+    <div class="profile-identity">
+      <strong><%= user.name %></strong>
+      <span><%= user.email %></span>
+      <small><%= roleLabel %></small>
+    </div>
+    <div class="profile-quick">
+      <p>Quick settings</p>
+      <%- include('appearance-trigger') %>
+    </div>
+    <nav class="profile-links" aria-label="Account">
+      <a href="/<%= role %>"><%- include('icon', { name: 'grid' }) %>Workspace overview</a>
+      <a href="<%= accountUrl %>" <% if (currentPath === '/account' || currentPath === '/student/profile') { %>aria-current="page"<% } %>>
+        <%- include('icon', { name: 'user' }) %>Account settings
+      </a>
+      <% if (preview) { %>
+        <a href="/"><%- include('icon', { name: 'arrow' }) %>Exit preview</a>
+      <% } else { %>
+        <form action="/auth/logout" method="post">
+          <button type="submit"><%- include('icon', { name: 'logout' }) %>Sign out</button>
+        </form>
+      <% } %>
+    </nav>
+  </div>
+</details>

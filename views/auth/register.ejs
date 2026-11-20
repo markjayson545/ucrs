@@ -1,60 +1,27 @@
 <%- include('../partials/head') %>
 <main id="main" class="auth-layout">
-  <section class="auth-story">
-    <a class="brand" href="/"
-      ><span class="brand-mark"
-        ><%- include('../partials/icon', { name: 'book' }) %></span
-      ><span>UCRS<span class="brand-sub">CAMPUS CONNECTED</span></span></a
-    >
-    <div>
-      <p class="eyebrow">A NEW BEGINNING.</p>
-      <h1>Big ideas.<br />Fresh starts.<br /><em>Your place.</em></h1>
-      <p>
-        Make space for what comes next. Your academic journey starts with a
-        connection.
-      </p>
-      <div class="auth-art" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
-    </div>
-    <small>University Course Registration System</small>
-  </section>
   <section class="auth-panel">
-    <a class="back-link" href="/">← Back to campus</a>
+    <nav class="auth-nav" aria-label="Account navigation">
+      <%- include('../partials/brand') %>
+      <%- include('../partials/appearance-trigger') %>
+    </nav>
     <div class="auth-form-wrap">
-      <h2>Find your place.</h2>
-      <p>Create your student account to get started.</p>
-      <form
-        action="/auth/register"
-        method="POST"
-        id="register-form"
-      >
-        <label for="name">Full name</label
-        ><input
-          id="name"
-          name="name"
-          autocomplete="name"
-          maxlength="100"
-          placeholder="Alex Morgan"
-          required
-        /><label for="email">University email</label
-        ><input
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          placeholder="you@example.edu"
-          required
-        />
+      <h1>Create an account</h1>
+      <p>Student accounts can browse courses, enroll, and track grades.</p>
+      <form id="register-form" action="/auth/register" method="post"
+        <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Creating your account…" data-success="/auth/login?registered=1"<% } %>>
+        <label for="name">Full name</label>
+        <input id="name" name="name" autocomplete="name" maxlength="100" required>
+        <label for="email">University email</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.edu" required>
         <div class="form-grid">
           <div>
-            <label for="idNumber"
-              >Student ID <span class="optional">(optional)</span></label
-            ><input id="idNumber" name="idNumber" placeholder="2026-00101" />
+            <label for="idNumber">Student ID <span class="optional">(optional)</span></label>
+            <input id="idNumber" name="idNumber" placeholder="2026-00101">
           </div>
           <div>
-            <label for="department">Department</label
-            ><select id="department" name="department" required>
+            <label for="department">Department</label>
+            <select id="department" name="department" required>
               <option value="">Select department</option>
               <option>Computer Science</option>
               <option>Mathematics</option>
@@ -64,36 +31,19 @@
         </div>
         <label for="password">Password</label>
         <div class="password-field">
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autocomplete="new-password"
-            minlength="8"
-            aria-describedby="password-hint"
-            required
-          /><button
-            type="button"
-            data-password="password"
-            aria-label="Show password"
-            aria-pressed="false"
-          >
-            Show
-          </button>
+          <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" aria-describedby="password-hint" required>
+          <button type="button" data-password="password" aria-label="Show password" aria-pressed="false">Show</button>
         </div>
-        <p id="password-hint" class="field-hint">
-          Use at least 8 characters. This preview does not create an account.
-        </p>
-        <button type="submit" class="button primary full">
+        <p id="password-hint" class="field-hint">Use at least 8 characters.</p>
+        <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Create student account <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>
         <p class="form-feedback" role="status" hidden></p>
       </form>
-      <p class="auth-switch">
-        Already part of campus? <a href="/auth/login">Sign in</a>
-      </p>
+      <p class="auth-switch">Already have an account? <a href="/auth/login">Sign in</a></p>
     </div>
   </section>
+  <%- include('../partials/auth-story', { photo: 'library-study.webp', message: 'Your next semester starts here.' }) %>
 </main>
-<script src="/javascripts/register.js" defer></script>
+<% if (!preview) { %><script src="/javascripts/auth.js" defer></script><% } %>
 <%- include('../partials/auth-end') %>
