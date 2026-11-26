@@ -1,0 +1,6 @@
+<% const confirmed = enrollments.filter(record => record.status === 'enrolled').length;
+   const waitlisted = enrollments.filter(record => record.status === 'waitlisted').length; %>
+<div class="chips">
+  <span class="badge success"><%= confirmed %> confirmed</span>
+  <span class="badge warning"><%= waitlisted %> waitlisted</span>
+</div>

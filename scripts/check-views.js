@@ -19,8 +19,16 @@ const server = app.listen(0, "127.0.0.1", async () => {
       const html = await response.text();
       assert.match(response.headers.get("content-type"), /text\/html/, path);
       assert.match(html, /<main\b/, path);
-      assert.match(html, /data-theme-toggle\b/, path);
-      assert.match(html, /id="appearance-dialog"/, path);
+      assert.match(html, /popovertarget="appearance-popover"/, path);
+      assert.match(html, /id="appearance-popover"[^>]*popover="auto"/, path);
+      if (["/", "/auth/login", "/auth/register"].includes(path)) {
+        assert.doesNotMatch(html, /data-theme-toggle\b/, path);
+      }
+      if (path === "/admin/reports") {
+        assert.match(html, /id="report-sections"/, path);
+        assert.match(html, /<canvas\b/, path);
+        assert.match(html, /src="\/vendor\/chartjs\/chart\.umd\.min\.js"/, path);
+      }
       assert.doesNotMatch(html, /<%|undefined|ReferenceError/, path);
       if (/^\/(student|faculty|admin|account)(\/|\?|$)/.test(path) && response.status === 200) {
         assert.match(html, /<details[^>]*data-profile-menu/, path);
@@ -67,6 +75,8 @@ const server = app.listen(0, "127.0.0.1", async () => {
       "/stylesheets/theme.css",
       "/stylesheets/public-pages.css",
       "/javascripts/appearance.js",
+      "/javascripts/reports.js",
+      "/vendor/chartjs/chart.umd.min.js",
       "/javascripts/showcase.js",
       "/javascripts/portal.js",
       "/javascripts/motion.js",

@@ -43,6 +43,7 @@
     document.addEventListener('focusin', closeProfileWhenOutside);
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape' || !profileMenu.open || document.querySelector('dialog[open]')) return;
+      if (profileMenu.querySelector('.appearance-popover')?.getClientRects().length) return;
       event.preventDefault();
       profileMenu.open = false;
       profileMenu.querySelector('summary').focus();
@@ -54,13 +55,44 @@
   });
 
   for (const button of document.querySelectorAll('[data-password]')) {
+    const input = document.getElementById(button.dataset.password);
+    const field = input.name === 'confirmPassword' ? 'password confirmation' : 'password';
+    button.hidden = false;
     button.addEventListener('click', () => {
-      const input = document.getElementById(button.dataset.password);
       const show = input.type === 'password';
       input.type = show ? 'text' : 'password';
       button.textContent = show ? 'Hide' : 'Show';
-      button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-      button.setAttribute('aria-pressed', String(show));
+      button.setAttribute('aria-label', (show ? 'Hide ' : 'Show ') + field);
+    });
+  }
+
+  for (const confirmation of document.querySelectorAll('[data-match-password]')) {
+    const password = document.getElementById(confirmation.dataset.matchPassword);
+    const error = document.getElementById(confirmation.getAttribute('aria-describedby'));
+    const mismatch = 'Passwords don’t match. Enter the same password in both fields.';
+
+    function checkMatch(showError) {
+      const different = confirmation.value !== '' && confirmation.value !== password.value;
+      confirmation.setCustomValidity(different ? mismatch : '');
+      error.hidden = !(different && showError);
+      error.textContent = error.hidden ? '' : mismatch;
+      if (error.hidden) confirmation.removeAttribute('aria-invalid');
+      else confirmation.setAttribute('aria-invalid', 'true');
+    }
+
+    for (const field of [password, confirmation]) {
+      field.addEventListener('input', () => checkMatch(!error.hidden));
+      field.addEventListener('change', () => checkMatch(true));
+    }
+    confirmation.addEventListener('blur', () => checkMatch(true));
+    confirmation.addEventListener('invalid', () => checkMatch(true));
+    // Recheck autofilled values before either a live or a preview form submits.
+    confirmation.form.addEventListener('submit', event => {
+      checkMatch(true);
+      if (!confirmation.reportValidity()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
     });
   }
 
@@ -101,8 +133,12 @@
   });
 
   for (const form of document.querySelectorAll('[data-confirm]')) {
+    if (!dialog?.showModal) continue;
+    // The disclosure provides a two-step sign-out when scripts are unavailable.
+    const disclosure = form.querySelector('[data-confirm-disclosure]');
+    if (disclosure) disclosure.replaceWith(disclosure.querySelector('button[type="submit"]'));
     form.addEventListener('submit', event => {
-      if (!dialog || confirmed.delete(form)) return;
+      if (confirmed.delete(form)) return;
       event.preventDefault();
       pendingForm = form;
       submitter = event.submitter;
@@ -182,7 +218,9 @@
       feedback.dispatchEvent(new Event('portal:feedback', { bubbles: true }));
     }
 
-    form.addEventListener('input', event => event.target.removeAttribute('aria-invalid'));
+    form.addEventListener('input', event => {
+      if (!event.target.validity?.customError) event.target.removeAttribute('aria-invalid');
+    });
     form.addEventListener('reset', () => {
       if (feedback) feedback.hidden = true;
       fields.forEach(field => field.removeAttribute('aria-invalid'));

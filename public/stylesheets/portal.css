@@ -87,8 +87,7 @@ img { display: block; max-width: 100%; }
 .icon-button, .round-link { width: var(--control-height); padding: 0; }
 .appearance-controls { display: inline-flex; align-items: center; gap: .45rem; }
 .theme-toggle { flex: 0 0 auto; }
-.theme-toggle:not([aria-disabled="true"]):active { transform: scale(.88); transition-duration: 85ms; }
-.theme-toggle[aria-disabled="true"] { cursor: progress; }
+.theme-toggle:active { transform: scale(.88); transition-duration: 85ms; }
 .theme-toggle-icons { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; }
 .theme-toggle-icons > span { grid-area: 1 / 1; line-height: 0; }
 .theme-icon-dark, [data-theme="dark"] .theme-icon-light { display: none; }
@@ -224,6 +223,9 @@ img { display: block; max-width: 100%; }
 .profile-quick p { font-size: .84rem; font-weight: 650; }
 .profile-quick:has([data-appearance-open][hidden]) { display: none; }
 .profile-links { display: grid; gap: .16rem; padding-top: .35rem; }
+.profile-links summary { padding: .5rem; cursor: pointer; }
+[data-confirm-disclosure]:not([open]) summary span:last-child,
+[data-confirm-disclosure][open] summary span:first-child { display: none; }
 .profile-links a, .profile-links button {
   display: flex;
   align-items: center;
@@ -358,7 +360,16 @@ img { display: block; max-width: 100%; }
 .banner-copy .button, .detail-hero .chips { margin-top: .65rem; }
 .banner-photo, .detail-photo { position: relative; min-height: 11rem; background: var(--soft); overflow: hidden; }
 .banner-photo img, .detail-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.catalog-banner .banner-photo { min-height: 8rem; }
+.catalog-banner {
+  grid-template-columns: minmax(0, 1fr) clamp(4.5rem, 20%, 12rem);
+  align-items: stretch;
+  margin-top: .75rem;
+}
+.catalog-banner p { align-self: center; padding: .85rem 1rem; }
+.catalog-banner .banner-photo { min-height: 3.5rem; }
+.student-tools { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.student-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .4rem .65rem; }
+.student-search label { grid-column: 1 / -1; }
 .course-card { display: flex; flex-direction: column; overflow: hidden; transition: border-color .18s, box-shadow .18s; }
 .course-art { position: relative; aspect-ratio: 16 / 8.5; overflow: hidden; background: var(--soft); }
 .course-art img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
@@ -385,11 +396,21 @@ img { display: block; max-width: 100%; }
 .credit-label { color: var(--muted); font-size: .91rem; white-space: nowrap; }
 .section-option { border-top: 1px solid var(--border); padding-block: 1.15rem; }
 .section-option:last-child { padding-bottom: 0; }
-.section-option .row-between:last-child { margin-top: .75rem; }
-.section-option > p { margin-block: .45rem .6rem; color: var(--muted); }
-.schedule-line, .schedule-line span { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
-.schedule-line { gap: .65rem 1rem; margin-bottom: .25rem; font-size: .94rem; }
-.schedule-line .icon { color: var(--accent-text); }
+.section-facts { display: grid; grid-template-columns: 1.5fr 1fr .7fr; gap: .75rem; margin: 1rem 0; }
+.section-facts dt, .registration-list .table-sub { color: var(--muted); font-size: .89rem; }
+.section-facts dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+.section-facts dd + dd { margin-top: .6rem; }
+.registration-list { margin: 0; padding: 0; list-style: none; }
+.registration-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) .65fr .8fr 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: .6rem 1rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
 .class-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .85rem; padding-block: .8rem; border-top: 1px solid var(--border); }
 .day-tile { width: 3.25rem; height: 3.25rem; font-size: .86rem; }
 .class-info a, .class-time { font-weight: 700; }
@@ -466,9 +487,9 @@ meter::-webkit-meter-bar { background: var(--soft); border: 0; border-radius: 99
 meter::-webkit-meter-optimum-value { background: var(--action); border-radius: 99px; }
 meter::-moz-meter-bar { background: var(--action); border-radius: 99px; }
 td meter { min-width: 5rem; }
-.report-row { display: grid; gap: .25rem; padding-block: .64rem; border-top: 1px solid var(--border); }
-.report-row small { font-size: .91rem; }
-.report-row meter { margin: .25rem 0; }
+.report-chart { position: relative; min-height: 12rem; }
+#report-plot { margin-bottom: 1rem; }
+#report-plot select { width: auto; margin-inline-start: .5rem; }
 
 label, legend { font-weight: 650; }
 form label:not(.checkbox-label):not(.theme-option):not(.accent-option), .table-filter label { display: block; margin-bottom: .3rem; }
@@ -494,6 +515,7 @@ legend { padding-inline: .35rem; }
 .form-grid, .check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .form-grid { margin-bottom: 1rem; }
 .field-hint { margin-top: .4rem; font-size: .89rem; }
+.field-error { color: var(--danger); }
 .form-actions { margin-top: 1.1rem; }
 .checkbox-label { display: flex; align-items: start; gap: .5rem; border: 1px solid var(--border); border-radius: 8px; padding: .65rem; min-height: 2.75rem; }
 .checkbox-label input { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; margin: .2rem 0 0; }
@@ -549,8 +571,24 @@ dialog {
 dialog::backdrop { background: #160f14a0; }
 dialog > p { margin-top: .55rem; color: var(--muted); }
 dialog > .form-actions { justify-content: end; }
-.appearance-dialog fieldset { padding: 0; border: 0; }
-.appearance-dialog legend { margin-bottom: .45rem; padding: 0; }
+.appearance-popover {
+  position: fixed;
+  z-index: 30;
+  inset: auto;
+  width: min(23rem, calc(100% - 1rem));
+  max-height: calc(100dvh - 1rem);
+  overflow-y: auto;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+.appearance-popover h2 { font-size: 1.15rem; }
+.appearance-popover fieldset { margin: .85rem 0 0; padding: 0; border: 0; }
+.appearance-popover legend { margin-bottom: .45rem; padding: 0; }
 .theme-options, .accent-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
 .accent-options { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .theme-option, .accent-option {
@@ -632,10 +670,13 @@ dialog > .form-actions { justify-content: end; }
 }
 @media (max-width: 36rem) {
   .stats-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .week-grid, .section-facts, .student-search { grid-template-columns: 1fr; }
+  .registration-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  .registration-list li > :first-child { grid-column: 1 / -1; }
+  .registration-list li > :last-child { justify-self: end; }
   .course-grid, .three-grid, .form-grid, .check-grid, .filter-bar { grid-template-columns: 1fr; }
-  .welcome-banner, .catalog-banner, .detail-hero { grid-template-columns: 1fr; }
-  .banner-photo, .detail-photo, .catalog-banner .banner-photo { min-height: 8.5rem; }
+  .welcome-banner, .detail-hero { grid-template-columns: 1fr; }
+  .banner-photo, .detail-photo { min-height: 8.5rem; }
   .banner-copy, .detail-hero > div:first-child { padding: 1rem; }
   .stat-card { padding: .8rem; }
   .stat-icon { width: 2rem; height: 2rem; }
@@ -653,5 +694,5 @@ dialog > .form-actions { justify-content: end; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
   .button:active:not(:disabled), .course-card:hover .course-art img,
-  .theme-toggle:not([aria-disabled="true"]):active { transform: none; }
+  .theme-toggle:active { transform: none; }
 }

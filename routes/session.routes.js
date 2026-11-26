@@ -38,7 +38,7 @@ router.post('/logout', sameOrigin, (req, res, next) => {
     req.session.destroy(error => {
         if (error) return next(error);
         res.clearCookie('ucrs.sid', { path: '/' });
-        res.redirect(303, '/auth/login');
+        res.redirect(303, '/auth/login?signedOut=1');
     });
 });
 

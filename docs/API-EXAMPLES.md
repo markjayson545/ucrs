@@ -1,12 +1,12 @@
 # API request examples
 
-Use a running [live portal](../README.md#run-the-live-system). These examples use `http://localhost:8080` and the default term `2026-1`. Use a test database when running the write examples.
+Start the live server and use its base URL in your HTTP client. The default base URL is `http://localhost:8080`. Use a test database for the write examples and substitute your configured term for `2026-1`. [Live setup](../README.md#run-the-live-system) · [Endpoint and role index](../README.md#api-quick-reference)
 
-Paste each request into an HTTP client. Replace values in angle brackets with IDs or tokens from your responses. Successful requests with a JSON body return `{ "success": true, "data": ... }`. HTTP 204 has an empty body.
+Replace angle-bracket placeholders with IDs and tokens from earlier responses. Check the HTTP status and read successful JSON payloads from `data`. A course list also includes pagination in `meta`. A successful delete returns HTTP 204 with an empty body. Errors include a `message` and may include field-level `errors`.
 
 ## Register and sign in
 
-New registrations receive the Student role. Create an administrator with `npm run seed` and assign Faculty in **People and access** before testing staff operations.
+New registrations receive the Student role. Seed the administrator during setup. Register a second account and use **People and access** as the administrator to give it the Faculty role before testing staff operations.
 
 ```http
 POST /api/auth/register
@@ -48,7 +48,7 @@ Content-Type: application/json
 }
 ```
 
-Use the course ID from `data._id`. Get the faculty ID from `GET /api/auth/me` using a faculty token. Section times are minutes after midnight. Here the class meets Monday from 09:00 to 10:30.
+Use the course ID from `data._id`. Get the faculty ID from `data.user._id` in `GET /api/auth/me` using a faculty token. Section times are minutes after midnight. Here the class meets Monday from 09:00 to 10:30.
 
 ```http
 POST /api/sections
@@ -66,7 +66,7 @@ Content-Type: application/json
 }
 ```
 
-Use `GET /api/courses?q=computing&page=1&limit=10` to search and `GET /api/sections?term=2026-1` to find sections. Send a bearer token for both requests.
+Use `GET /api/courses?q=computing&page=1&limit=10` to search. The course list also accepts `department` and sorts by `code`, `title`, `department`, or `credits` through the `sort` parameter. Use `GET /api/sections?term=2026-1&course=<course-id>` to find the offering. Send a bearer token for both requests.
 
 ## Register for a section as a student
 
@@ -84,7 +84,7 @@ HTTP 201 returns an enrollment ID and an `enrolled` or `waitlisted` status. A co
 
 ## Grade an enrolled student as the assigned faculty member
 
-Find the enrollment ID with `GET /api/sections/<section-id>/roster`.
+Keep the student enrolled for the grading example. Find the enrollment ID in `data.records` from `GET /api/sections/<section-id>/roster`.
 
 ```http
 PATCH /api/sections/<section-id>/grades
@@ -96,4 +96,13 @@ Content-Type: application/json
 }
 ```
 
-The student can now read the grade with `GET /api/enrollments/transcript`. An administrator can read enrollment and waitlist totals with `GET /api/reports?term=2026-1`.
+The student can now read the grade and credit-weighted GPA with `GET /api/enrollments/transcript`.
+
+## Read enrollment and waitlist totals as an administrator
+
+```http
+GET /api/reports?term=2026-1
+Authorization: Bearer <admin-token>
+```
+
+Omit `term` to use the current term. Under `data`, the response includes `sections`, `capacity`, `enrolled`, `available`, `waitlisted`, `utilization` (rounded percent), and `openSections`. Cancelled sections are excluded. Each section row includes its `enrolledCount`, `capacity`, and `waitlisted`. A student registered in two sections accounts for two seats. The browser report uses the same totals. [Report service](../services/report.service.js)

@@ -1,6 +1,6 @@
 // Both account forms submit JSON and display the server's response here.
 const authForm = document.querySelector('[data-auth]');
-const feedback = authForm.querySelector('.form-feedback');
+const feedback = authForm.querySelector('[role="status"]');
 const submitButton = authForm.querySelector('button[type="submit"]');
 
 function showFeedback(message, kind) {
@@ -25,7 +25,7 @@ authForm.addEventListener('submit', async event => {
   try {
     const response = await fetch(authForm.action, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Portal-Form': '1' },
       body: JSON.stringify(payload),
     });
     const result = await response.json();

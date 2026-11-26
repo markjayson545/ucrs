@@ -1,40 +1,34 @@
 <%- include('../partials/header') %>
 <%- include('../partials/page-heading', { eyebrow: 'STUDENT WORKSPACE', description: 'Manage your registrations and waitlist places for ' + term + '.', action: { href: '/catalog/courses', label: 'Add a course' } }) %>
 <section class="panel">
-  <div class="panel-heading"><h2>Current enrollments</h2><span class="badge"><%= enrollments.length %> registrations</span></div>
+  <div class="panel-heading"><h2><%= termLabel %></h2><%- include('../partials/enrollment-summary') %></div>
   <% if (!enrollments.length) { %><p class="empty-state">You have no enrollments or waitlist places this term.</p><% } else { %>
-    <div class="table-wrap">
-      <table>
-        <caption class="sr-only">Current course enrollments</caption>
-        <thead><tr><th>Course</th><th>Section / faculty</th><th>Credits</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>
-          <% enrollments.forEach(record => { %>
-            <tr>
-              <td>
-                <% if (record.course) { %>
-                  <a class="table-title" href="/catalog/courses/<%= record.course._id %>"><%= record.course.code %></a>
-                  <span class="table-sub"><%= record.course.title %></span>
-                <% } else { %>Course unavailable<% } %>
-              </td>
-              <td><strong><%= record.section?.sectionCode || '—' %></strong><span class="table-sub"><%= record.section?.faculty?.name || '—' %></span></td>
-              <td><%= record.course?.credits ?? '—' %></td>
-              <td><span class="badge <%= record.status === 'enrolled' ? 'success' : 'warning' %>"><%= record.status %></span></td>
-              <td>
-                <% if (preview) { %>
-                  <button type="button" class="text-button danger" data-preview-action data-message="This preview shows the drop step. Sample records stay the same.">Preview drop</button>
-                <% } else { %>
-                  <form method="post" action="/student/enrollments/<%= record._id %>/drop"
-                    data-confirm="<%= record.status === 'waitlisted' ? 'Leave this waitlist?' : 'Drop this course?' %>"
-                    data-confirm-message="<%= record.status === 'waitlisted' ? 'You will lose your current position on the waitlist.' : 'Your seat will be released and the class will leave your schedule.' %>" data-submit>
-                    <button type="submit" class="text-button danger"><%= record.status === 'waitlisted' ? 'Leave waitlist' : 'Drop' %></button>
-                  </form>
-                <% } %>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
+    <ul class="registration-list">
+      <% enrollments.forEach(record => { %>
+        <li>
+          <div>
+            <% if (record.course) { %>
+              <a class="table-title" href="/catalog/courses/<%= record.course._id %>"><%= record.course.code %></a>
+              <span class="table-sub"><%= record.course.title %></span>
+            <% } else { %>Course unavailable<% } %>
+          </div>
+          <div>Section <%= record.section?.sectionCode || 'TBD' %><span class="table-sub"><%= record.section?.faculty?.name || 'Instructor TBD' %></span></div>
+          <span><%= record.course?.credits ?? '—' %> credits</span>
+          <span class="badge <%= record.status === 'enrolled' ? 'success' : 'warning' %>"><%= record.status === 'enrolled' ? 'Confirmed' : 'Waitlisted' %></span>
+          <div>
+            <% if (preview) { %>
+              <button type="button" class="text-button danger" data-preview-action data-message="This preview shows the drop step. Sample records stay the same."><%= record.status === 'waitlisted' ? 'Preview leaving waitlist' : 'Preview drop' %></button>
+            <% } else { %>
+              <form method="post" action="/student/enrollments/<%= record._id %>/drop"
+                data-confirm="<%= record.status === 'waitlisted' ? 'Leave this waitlist?' : 'Drop this course?' %>"
+                data-confirm-message="<%= record.status === 'waitlisted' ? 'You will lose your current position on the waitlist.' : 'Your seat will be released and the class will leave your schedule.' %>" data-submit>
+                <button type="submit" class="text-button danger"><%= record.status === 'waitlisted' ? 'Leave waitlist' : 'Drop' %></button>
+              </form>
+            <% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
   <% } %>
 </section>
 <%- include('../partials/footer') %>

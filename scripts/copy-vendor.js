@@ -31,3 +31,10 @@ fs.writeFileSync(
   `GSAP ${version} — unmodified npm browser builds.\nRegenerate: npm run assets:vendor\nSource: https://gsap.com/\nLicense notices: see NOTICE.txt and the preserved build headers.\n`,
 );
 console.log(`Copied GSAP ${version} + ScrollTrigger into public/vendor/gsap.`);
+
+const chartDist = path.dirname(require.resolve("chart.js"));
+const chartDestination = path.join(__dirname, "../public/vendor/chartjs");
+fs.mkdirSync(chartDestination, { recursive: true });
+fs.copyFileSync(path.join(chartDist, "chart.umd.min.js"), path.join(chartDestination, "chart.umd.min.js"));
+fs.copyFileSync(path.join(chartDist, "../LICENSE.md"), path.join(chartDestination, "LICENSE.md"));
+console.log("Copied Chart.js into public/vendor/chartjs.");

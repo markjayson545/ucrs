@@ -1,6 +1,5 @@
-<dialog id="appearance-dialog" class="appearance-dialog" aria-labelledby="appearance-title" aria-describedby="appearance-description">
-  <h2 id="appearance-title">Appearance</h2>
-  <p id="appearance-description">Your settings apply across workspaces in this browser.</p>
+<section id="<%= panelId %>" class="appearance-popover" aria-labelledby="<%= panelId %>-title" popover="auto" hidden>
+  <h2 id="<%= panelId %>-title">Appearance</h2>
   <form data-appearance-form>
     <fieldset>
       <legend>Theme</legend>
@@ -26,5 +25,4 @@
       </div>
     </fieldset>
   </form>
-  <form method="dialog" class="form-actions"><button class="button primary">Done</button></form>
-</dialog>
+</section>

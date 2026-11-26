@@ -1,65 +1,85 @@
 # University Course Registration System
 
-UCRS is an Express and EJS portal backed by MongoDB. Students browse courses, register or join a waitlist, manage their schedule, and view grades. Faculty manage their assigned rosters and gradebooks. Administrators maintain the catalog, assign faculty, and review seat usage.
+UCRS helps students find a course, enroll in a section, and follow their timetable and grades. Faculty grade their assigned sections. Administrators maintain the catalog, assign faculty, and compare seat usage and waitlists across sections.
+
+## Set up a fresh clone
+
+Use Node.js 26 (the version in the Dockerfile) and npm. The live app also needs MongoDB with replica-set transactions. The Compose configuration provides a single-node replica set for local use.
+
+```sh
+git clone https://github.com/markjayson545/ucrs.git
+cd ucrs
+npm install
+```
+
+Copy `.env.example` to `.env` with `cp .env.example .env` or `Copy-Item .env.example .env` in PowerShell. Edit the settings before starting the live app. If PowerShell blocks `npm.ps1`, use `npm.cmd` for the npm commands.
+
+| Setting | How to set it |
+| --- | --- |
+| `SESSION_SECRET`, `JWT_SECRET` | Generate two separate signing secrets. Run `node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"` once for each. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Choose the initial administrator's credentials. The seed command requires a password of at least 8 characters and at most 72 UTF-8 bytes for a new account. |
+| `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`, `MONGO_URI` | Set the database credentials and use matching, URL-encoded credentials in the URI. Compose uses the hostname `mongodb` and replica set `ucrs`. Keep the original database credentials when reusing the existing `data/` directory. |
+| `PORT`, `APP_ORIGIN` | The example listens on `8080`. Set the origin to the exact browser address, including scheme and port, for protected form submissions. |
+| `COMPASS_PORT`, `COMPASS_AUTH_USERNAME`, `COMPASS_AUTH_PASSWORD` | Optional Compass Web settings. The browser UI listens on `8001` and uses the basic-auth account `admin` / `secret` until you set your own credentials. |
+| `CURRENT_TERM`, `JWT_EXPIRES_IN` | The defaults are `2026-1` for registration and `1d` for API tokens. |
+| `NODE_ENV`, `TRUST_PROXY` | Use `development` for local HTTP. Production session cookies require HTTPS. Use `TRUST_PROXY=1` behind one trusted reverse proxy. |
 
 ## Run the live system
 
-1. Copy `.env.example` to `.env` if you are setting up a fresh copy. Set your own `SESSION_SECRET`, `JWT_SECRET`, and `ADMIN_PASSWORD`. Set `APP_ORIGIN` to the exact address you will open in the browser, including the port.
-2. Run `docker compose up -d --build`. Compose starts the authenticated, single-node MongoDB replica set and waits until it can accept writes before starting the app.
-3. Run `docker compose exec ucrs npm run seed` to create the initial administrator using the email and password in your environment.
-4. Open [the live portal](http://localhost:8080). Create student accounts using the registration form. Sign in as the administrator and use **People and access** to assign an account the Faculty role before assigning that person to a section.
+With Docker Compose installed, run these commands from the project root.
 
-Compose uses `./data` for existing MongoDB files. Keep the same MongoDB credentials when reusing that directory. The app uses transactions for registration, seat changes, and grade submission, so a MongoDB replica set is required. See [Mongoose transactions](https://mongoosejs.com/docs/transactions.html) and [MongoDB replica set authentication](https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set-with-keyfile-access-control/).
+```sh
+docker compose up -d --build ucrs
+docker compose exec ucrs npm run seed
+```
 
-To run Node on the host, start MongoDB with `docker compose up -d mongodb`, install dependencies with `npm ci`, and use a host-accessible `MONGO_URI` for `npm run dev`. For the Compose database, replace the hostname in the example URI with `127.0.0.1`, use the mapped MongoDB port, and add `&directConnection=true`. The container service uses the hostname `mongodb` when it runs inside Compose.
+Compose waits for MongoDB to become writable before starting the portal. The seed command creates the administrator. Open the portal at the configured origin and sign in with that account. New registrations receive the Student role. To create a teaching account, register it and have the administrator assign the Faculty role under **People and access**. [Open the local portal](http://localhost:8080)
 
-In Windows PowerShell, use `npm.cmd` if your execution policy blocks `npm.ps1`.
+### Browse the database with Compass Web
 
-| Setting | Purpose |
-| --- | --- |
-| `PORT`, `APP_ORIGIN` | HTTP port and exact browser origin for session and protected form submissions |
-| `MONGO_URI` | MongoDB replica-set connection string |
-| `SESSION_SECRET`, `JWT_SECRET` | Separate secrets for the session cookie signature and API bearer tokens |
-| `CURRENT_TERM` | Registration term in `YYYY-N` format. Defaults to `2026-1`. |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Credentials used by `npm run seed` to create the initial administrator |
-| `NODE_ENV`, `TRUST_PROXY` | Production uses HTTPS cookies. Set `TRUST_PROXY=1` when the app is behind one trusted HTTPS proxy. |
+The Compose file also defines a `compass` service running [MongoDB Compass Web](https://github.com/haohanyang/compass-web). It waits for MongoDB to be writable and connects with the same root credentials as the app. Start the whole stack, not just `ucrs`, to include it.
 
-## Explore the sample portal
+```sh
+docker compose up -d
+```
 
-Run `npm ci` and `npm run dev:views`, then open [the preview](http://127.0.0.1:8081). The preview loads sample records and lets you explore all three roles without MongoDB. Set `VIEWS_PORT` to use a different port.
+Open [http://localhost:8001](http://localhost:8001) and sign in with the basic-auth account `admin` / `secret`. The service binds to `127.0.0.1` only and maps host port `8001` to the container's port `8080`. Set `COMPASS_AUTH_USERNAME` and `COMPASS_AUTH_PASSWORD` in `.env` before exposing it, and set `COMPASS_PORT` to use a different host port. The connection is fixed to the Compose replica set; editing extra connections and the Mongo shell are enabled in the UI.
 
-The home page shows screenshots of the [student timetable](public/images/showcase/student-schedule.webp), [faculty gradebook](public/images/showcase/faculty-gradebook.webp), and [admin reports](public/images/showcase/admin-reports.webp).
+### Run Node on the host
 
-## Account settings
+1. Start the database with `docker compose up -d mongodb`, or supply your own MongoDB replica set.
+2. For the Compose database, set `MONGO_URI` in the host's `.env` to `mongodb://<user>:<password>@127.0.0.1:27017/ucrs?authSource=admin&replicaSet=ucrs&directConnection=true`. Use the mapped port if you changed `MONGO_PORT`. Restore the container hostname when switching back to running the app in Compose.
+3. Run `npm run seed`, then `npm start`. Use `npm run dev` to restart Node automatically on file changes.
 
-Open your avatar menu in any workspace for the theme switch, accent settings, and sign-out. **Account settings** lets students, faculty, and administrators edit their own profile and password. Email changes require the current password. Changing the password keeps this browser signed in with a fresh session and invalidates previous sessions and JWTs.
+## How the system works
+
+The project began with Express Generator. After npm prepares the browser assets, `npm start` runs `bin/www`. That entry point connects to MongoDB, creates the Express app from `app.js`, and starts the HTTP listener.
+
+API endpoints live in `routes/`. The router checks the caller and dispatches to a controller. Services apply registration rules and read or write Mongoose models. For the portal, Express renders HTML from `views/`. The browser loads its CSS, JavaScript, images, and packaged libraries from `public/`. For example, both the catalog's **Enroll** form and `POST /api/enrollments` call the same service to assign a seat or a waitlist place. [Follow a registration through the files](docs/FILE-CONNECTIONS.md)
 
 ## API quick reference
 
-Get a JWT with `POST /api/auth/login` using `email` and `password`. Send it as `Authorization: Bearer <token>` on protected JSON routes. The browser portal signs in through `POST /auth/session` and uses a session cookie.
+Sign in with `POST /api/auth/login` and send the returned `data.token` as `Authorization: Bearer <token>`. The browser signs in at `POST /auth/session` and uses a session cookie.
 
-| Endpoint | What it does |
+| Access | Endpoints |
 | --- | --- |
-| `GET /api/health` | Check if HTTP is responding |
-| `POST /api/auth/register`, `GET /api/auth/me` | Create a student account and read the current API identity |
-| `GET /api/courses`, `GET /api/courses/:id` | List and read courses. List supports `q`, `department`, `page`, `limit`, and `sort`. |
-| `POST /api/courses`, `PATCH /api/courses/:id`, `DELETE /api/courses/:id` | Manage courses as an administrator |
-| `GET /api/sections`, `GET /api/sections/:id` | List and read sections. List supports `term` and `course`. |
-| `POST /api/sections`, `PATCH /api/sections/:id`, `DELETE /api/sections/:id` | Manage sections as an administrator |
-| `POST /api/enrollments`, `DELETE /api/enrollments/:id` | Register with a `section` ID or drop by enrollment ID as a student |
-| `GET /api/enrollments`, `GET /api/enrollments/schedule`, `GET /api/enrollments/transcript` | Read your student records |
-| `GET /api/sections/:id/roster`, `PATCH /api/sections/:id/grades` | Read and grade a section you teach. Send `{ "grade": { "<enrollmentId>": "A" } }` for grade submission. |
-| `GET /api/reports?term=2026-1` | Read seat capacity, occupancy, and waitlists as an administrator |
+| Public | `GET /api/health`, `POST /api/auth/register`, `POST /api/auth/login` |
+| Signed-in user | `GET /api/auth/me`, `GET /api/courses`, `GET /api/courses/:id`, `GET /api/sections`, `GET /api/sections/:id` |
+| Student | `GET /api/enrollments`, `GET /api/enrollments/schedule`, `GET /api/enrollments/transcript`, `POST /api/enrollments`, `DELETE /api/enrollments/:id` |
+| Assigned faculty | `GET /api/sections/:id/roster`, `PATCH /api/sections/:id/grades` |
+| Administrator | `POST /api/courses`, `POST /api/sections`, `PATCH` or `DELETE` on `/api/courses/:id` and `/api/sections/:id`, `GET /api/reports?term=2026-1` |
 
-The original `/auth/register`, `/auth/login`, `/auth/me`, and `/courses` JSON endpoints are available as aliases.
+The auth and course JSON routers also accept their original `/auth` and `/courses` prefixes. [Try the API examples](docs/API-EXAMPLES.md)
 
-## Checks and file guides
+## Preview and checks
 
-- `npm run check:views` follows links through the preview and checks rendering, filters, error pages, and assets.
-- Set `UCRS_TEST_MONGO_URI` to a test replica-set URI and run `npm run check:system`. The check creates and removes a temporary database named `ucrs_test_...` on that server.
-- [How the files connect](docs/FILE-CONNECTIONS.md) walks through startup, a GET page, a POST form, an API request, and browser assets.
-- [Connecting views](docs/CONNECTING-VIEWS.md) maps the browser URLs to EJS files.
-- [Animations](docs/ANIMATIONS.md) explains how to reuse the existing motion patterns.
-- [Design and usability review](docs/DESIGN.md) documents the themes, imagery, and interaction changes.
-- [API request examples](docs/API-EXAMPLES.md) walks through setup, enrollment, grading, and reporting over HTTP.
-- [Requirements and evaluation](REQUIREMENTS_RUBRICS.md) is the grading reference and maps each rubric criterion to evidence.
+- Run `npm run dev:views` to explore the portal with sample records. The preview uses port `8081` by default and accepts `VIEWS_PORT` to change it. [Open the preview](http://127.0.0.1:8081)
+- Run `npm run check:views` to render the linked preview pages and check filters, error pages, and browser assets.
+- Run `npm run check:system` with `UCRS_TEST_MONGO_URI` set in the shell to a test replica-set URI. The script creates and removes its own `ucrs_test_…` database. With the local Compose setup, use `docker compose exec ucrs sh -c 'UCRS_TEST_MONGO_URI=$MONGO_URI npm run check:system'`.
+
+## Documentation
+
+- Trace startup, browser forms, API endpoints, and database writes. [How the files connect](docs/FILE-CONNECTIONS.md)
+- Find each portal page, its template, and the registration rules for each role. [Browser routes and workspaces](docs/CONNECTING-VIEWS.md)
+- Follow sample requests from sign-in through enrollment, grading, and reporting. [API request examples](docs/API-EXAMPLES.md)
+- Match the required features and engineering criteria to code and checks. [Requirements and evaluation rubric](REQUIREMENTS_RUBRICS.md)

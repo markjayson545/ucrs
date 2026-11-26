@@ -1,5 +1,8 @@
 # Base image
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
+
+# Install the latest Alpine security fixes available during the build.
+RUN apk upgrade --no-cache
 
 WORKDIR /app
 
@@ -23,6 +26,8 @@ FROM base AS prod
 RUN npm ci --omit=dev || npm install --omit=dev
 
 COPY . .
+
+RUN chown -R node:node /app/public/vendor
 
 USER node
 

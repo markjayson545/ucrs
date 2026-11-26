@@ -77,13 +77,15 @@
         scrollTrigger: { trigger: element, start: "top 98%", once: true },
       });
     }
-    for (const meter of select("[data-meter]")) {
-      gsap.fromTo(meter, { clipPath: "inset(0 100% 0 0)" }, {
-        clipPath: "inset(0 0% 0 0)",
-        duration: 0.46,
-        clearProps: "clipPath",
-        scrollTrigger: { trigger: meter, start: "top 98%", once: true },
+    for (const result of select("[data-result-cue]")) {
+      gsap.fromTo(result, { boxShadow: "0 0 0 2px var(--accent-text)" }, {
+        boxShadow: "0 0 0 2px transparent", duration: 0.65, clearProps: "boxShadow",
+        scrollTrigger: { trigger: result, start: "top 94%", once: true },
+        immediateRender: false,
       });
+    }
+    for (const check of select("[data-registration-notice] .icon")) {
+      gsap.from(check, { scale: 0.65, duration: 0.2, ease: "back.out(1.5)", clearProps: "transform" });
     }
 
     context.add("openMenu", () => {
@@ -91,7 +93,7 @@
     });
     document.addEventListener("portal:menu", context.openMenu);
 
-    // Native dialog handles focus. GSAP animates its entrance after it opens.
+    // Dialogs and popovers share the same entrance.
     context.add("openDialog", (event) => {
       gsap.from(event.target, {
         opacity: 0, y: 12, scale: 0.98, duration: 0.28, ease: "power2.out",

@@ -14,7 +14,10 @@
 </div>
 <div class="content-split">
   <section class="panel">
-    <div class="panel-heading"><h2>Course sections</h2><span class="badge"><%= term %></span></div>
+    <div class="panel-heading">
+      <div class="chips"><h2>Course sections</h2><span class="badge"><%= term %></span></div>
+      <% if (role === 'student') { %><a class="text-link" href="/student/schedule">View my schedule ↗</a><% } %>
+    </div>
     <% if (!sections.length) { %><p class="empty-state">No sections are scheduled for this term.</p><% } %>
     <% sections.forEach(section => {
       const full = section.enrolledCount >= section.capacity;
@@ -26,33 +29,35 @@
             <%= open ? (full ? 'Waitlist available' : 'Seats available') : 'Registration closed' %>
           </span>
         </div>
-        <p><%= section.faculty?.name || 'Faculty to be assigned' %></p>
-        <% section.schedule.forEach(meeting => { %>
-          <div class="schedule-line">
-            <span><%- include('../partials/icon', { name: 'clock' }) %><%= meeting.day %> · <%= formatTime(meeting.start) %>–<%= formatTime(meeting.end) %></span>
-            <span><%- include('../partials/icon', { name: 'pin' }) %><%= meeting.room || 'Room TBD' %></span>
+        <dl class="section-facts">
+          <div>
+            <dt>Meetings</dt>
+            <% if (!section.schedule.length) { %><dd>Time TBD</dd><% } %>
+            <% section.schedule.forEach(meeting => { %>
+              <dd><%= meeting.day %> · <%= formatTime(meeting.start) %>–<%= formatTime(meeting.end) %>
+                <span class="table-sub"><%= meeting.room || 'Room TBD' %></span></dd>
+            <% }) %>
           </div>
-        <% }) %>
-        <div class="row-between">
-          <span class="muted"><%= section.enrolledCount %> / <%= section.capacity %> seats filled</span>
-          <% if (open && preview) { %>
-            <button type="button" class="button primary" data-preview-action data-message="This preview shows the registration step. Sample records stay the same.">
-              <%= full ? 'Preview waitlist' : 'Preview enrollment' %>
-            </button>
-          <% } else if (open && !user) { %>
-            <a class="button primary" href="/auth/login">Sign in to enroll</a>
-          <% } else if (open && role === 'student') { %>
-            <% if (registration?.status === 'completed') { %>
-              <a class="text-link" href="/student/transcript">View your completed course ↗</a>
-            <% } else if (registration) { %>
-              <a class="text-link" href="/student/enrollments">View your registration ↗</a>
-            <% } else { %>
-              <form method="post" action="/student/enrollments/<%= section._id %>/register" data-submit>
-                <button type="submit" class="button primary"><%= full ? 'Join waitlist' : 'Enroll' %></button>
-              </form>
-            <% } %>
+          <div><dt>Instructor</dt><dd><%= section.faculty?.name || 'To be assigned' %></dd></div>
+          <div><dt>Seats filled</dt><dd><%= section.enrolledCount %> / <%= section.capacity %></dd></div>
+        </dl>
+        <% if (open && preview) { %>
+          <button type="button" class="button primary" data-preview-action data-message="This preview shows the registration step. Sample records stay the same.">
+            <%= full ? 'Preview waitlist' : 'Preview enrollment' %>
+          </button>
+        <% } else if (open && !user) { %>
+          <a class="button primary" href="/auth/login">Sign in to enroll</a>
+        <% } else if (open && role === 'student') { %>
+          <% if (registration?.status === 'completed') { %>
+            <a class="text-link" href="/student/transcript">View your completed course ↗</a>
+          <% } else if (registration) { %>
+            <a class="text-link" href="/student/enrollments">View your registration ↗</a>
+          <% } else { %>
+            <form method="post" action="/student/enrollments/<%= section._id %>/register" data-submit>
+              <button type="submit" class="button primary"><%= full ? 'Join waitlist' : 'Enroll' %></button>
+            </form>
           <% } %>
-        </div>
+        <% } %>
       </article>
     <% }) %>
   </section>
@@ -68,7 +73,6 @@
     <% } else { %>
       <p class="notice">This course has no prerequisites.</p>
     <% } %>
-    <% if (role === 'student') { %><a class="text-link" href="/student/schedule">Review your schedule ↗</a><% } %>
   </aside>
 </div>
 <%- include('../partials/footer') %>

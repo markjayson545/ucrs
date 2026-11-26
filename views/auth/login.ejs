@@ -15,13 +15,12 @@
         <label for="password">Password</label>
         <div class="password-field">
           <input id="password" name="password" type="password" autocomplete="current-password" required>
-          <button type="button" data-password="password" aria-pressed="false" aria-label="Show password">Show</button>
+          <button type="button" data-password="password" aria-controls="password" aria-label="Show password" hidden>Show</button>
         </div>
         <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Sign in <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>
-        <% const registered = typeof registrationComplete !== 'undefined' && registrationComplete; %>
-        <p class="form-feedback" role="status" <% if (!registered) { %>hidden<% } %>><%= registered ? 'Account created. You can sign in now.' : '' %></p>
+        <p class="form-feedback" role="status" <% if (typeof loginNotice === 'undefined' || !loginNotice) { %>hidden<% } %>><%= typeof loginNotice === 'string' ? loginNotice : '' %></p>
       </form>
       <p class="auth-switch">New student? <a href="/auth/register">Create an account</a></p>
     </div>

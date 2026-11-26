@@ -13,7 +13,8 @@ const limit = rateLimit({
 });
 
 function protectBrowserRegistration(req, res, next) {
-    if (req.baseUrl === '/auth' && (req.get('origin') || req.is('application/x-www-form-urlencoded'))) {
+    res.locals.registrationForm = req.baseUrl === '/auth' && req.is('application/x-www-form-urlencoded');
+    if (req.baseUrl === '/auth' && (req.get('origin') || res.locals.registrationForm)) {
         return sameOrigin(req, res, next);
     }
     next();

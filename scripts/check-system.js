@@ -70,6 +70,24 @@ async function run() {
         assert.equal((await request('/student', { status: 302 })).headers.get('location'), '/auth/login');
         assert.equal((await request('/account', { status: 302 })).headers.get('location'), '/auth/login');
 
+        const registration = { name: 'Registration check', email: 'register@example.edu', password };
+        const missingConfirmation = await request('/auth/register', {
+            method: 'POST', data: registration, browserForm: true, status: 400,
+        });
+        assert.equal((await missingConfirmation.json()).errors[0].field, 'confirmPassword');
+        const mismatchForm = await request('/auth/register', {
+            method: 'POST', form: { ...registration, confirmPassword: 'different' }, status: 400,
+        });
+        const registrationPage = await mismatchForm.text();
+        assert.match(registrationPage, /Passwords don’t match/);
+        assert.match(registrationPage, /value="register@example.edu"/);
+        assert.ok(!registrationPage.includes(password));
+        assert.equal(await User.countDocuments({ email: registration.email }), 0);
+        const registered = await request('/auth/register', {
+            method: 'POST', form: { ...registration, confirmPassword: password }, status: 303,
+        });
+        assert.equal(registered.headers.get('location'), '/auth/login?registered=1');
+
         const admin = await account('Admin', 'admin');
         const faculty = await account('Faculty', 'faculty');
         const otherFaculty = await account('OtherFaculty', 'faculty');
@@ -289,7 +307,8 @@ async function run() {
         await request('/api/auth/me', { token: credentials.token });
 
         await request('/auth/logout', { ...student, method: 'POST', form: {}, origin: 'null', status: 403 });
-        await request('/auth/logout', { ...student, method: 'POST', form: {}, status: 303 });
+        const signedOut = await request('/auth/logout', { ...student, method: 'POST', form: {}, status: 303 });
+        assert.match(await (await request(signedOut.headers.get('location'))).text(), /You’re signed out/);
         await request('/student', { ...student, status: 302 });
 
         console.log('PASS: Live HTML and JSON, course and section CRUD, enrollment rules, grades, reports, and account security.');

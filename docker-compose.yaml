@@ -17,7 +17,7 @@ services:
         condition: service_healthy
 
   mongodb:
-    image: mongodb/mongodb-community-server:8.0-ubi8
+    image: mongodb/mongodb-community-server:latest
     entrypoint:
       - /bin/sh
       - -ec
@@ -40,3 +40,22 @@ services:
       timeout: 5s
       retries: 15
       start_period: 10s
+
+  # MongoDB Compass Web. The container listens on 8080 (not 8001), so the host
+  # port is mapped to 8080. Open http://localhost:8001 and log in with the
+  # basic-auth credentials below.
+  compass:
+    image: haohanyang/compass-web:0.5.2
+    ports:
+      - "127.0.0.1:${COMPASS_PORT:-8001}:8080"
+    environment:
+      CW_APP_NAME: UCRS Compass
+      CW_MONGO_URI: "mongodb://${MONGO_INITDB_ROOT_USERNAME:-user}:${MONGO_INITDB_ROOT_PASSWORD:-pass}@mongodb:27017/?authSource=admin&replicaSet=ucrs"
+      CW_BASIC_AUTH_USERNAME: "${COMPASS_AUTH_USERNAME:-admin}"
+      CW_BASIC_AUTH_PASSWORD: "${COMPASS_AUTH_PASSWORD:-secret}"
+      CW_ENABLE_EDIT_CONNECTIONS: "true"
+      CW_ENABLE_SHELL: "true"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped

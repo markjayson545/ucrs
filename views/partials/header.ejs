@@ -50,4 +50,8 @@
     </header>
     <main id="main" class="main-content">
       <% if (preview) { %><p class="preview-bar">UI preview · Sample records</p><% } %>
-      <% if (notice) { %><p class="notice success-notice" role="status" data-arrival><%- include('icon', { name: 'check' }) %><%= notice %></p><% } %>
+      <% if (notice) { %>
+        <p class="notice success-notice" role="status" <%= currentPath === '/student/enrollments' ? 'data-registration-notice' : 'data-arrival' %>>
+          <%- include('icon', { name: 'check' }) %><%= notice %>
+        </p>
+      <% } %>

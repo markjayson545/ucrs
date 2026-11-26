@@ -1,6 +1,6 @@
 # Browser routes and EJS views
 
-Run the [live portal](../README.md#run-the-live-system) for real sign-in and records. Run `npm run dev:views` for the same templates with sample records and a workspace picker. Start with [How the files connect](FILE-CONNECTIONS.md) for a guided walk through the request.
+The live portal uses a session cookie to identify the signed-in user and checks their current role on each protected page. The public catalog is available to visitors. For a walkthrough with sample records, run `npm run dev:views` and use the workspace picker. [Live setup](../README.md#run-the-live-system) · [How requests reach EJS](FILE-CONNECTIONS.md)
 
 ## GET page map
 
@@ -10,14 +10,22 @@ Run the [live portal](../README.md#run-the-live-system) for real sign-in and rec
 | `/auth/login`, `/auth/register` | `auth/login.ejs`, `auth/register.ejs` | Anyone |
 | `/catalog/courses`, `/catalog/courses/:id` | `catalog/index.ejs`, `catalog/show.ejs` | Anyone |
 | `/student`, `/student/enrollments`, `/student/schedule`, `/student/transcript` | The corresponding file under `student/`, starting with `index.ejs` | Student |
-| `/account` | `account/index.ejs` | Any signed-in role |
+| `/account` | `account/index.ejs` | Any signed-in role. Students can also open `/student/profile`. |
 | `/faculty`, `/faculty/sections` | `faculty/index.ejs`, `faculty/sections.ejs` | Faculty |
 | `/faculty/sections/:id/roster`, `/faculty/sections/:id/grades` | `faculty/roster.ejs`, `faculty/grades.ejs` | Faculty assigned to the section |
 | `/admin`, `/admin/courses`, `/admin/sections`, `/admin/users`, `/admin/reports` | The corresponding file under `admin/`, starting with `index.ejs` | Administrator |
 | `/admin/courses/new`, `/admin/courses/:id/edit` | `admin/course-form.ejs` | Administrator |
 | `/admin/sections/new`, `/admin/sections/:id/edit` | `admin/section-form.ejs` | Administrator |
 
-In a form such as `views/admin/course-form.ejs`, look for the `action` attribute and search for that path in [the live router](../routes/views.routes.js). The method is part of the lookup. A GET shows the form and a POST saves it.
+A GET displays a page. Forms send changes to the path in their `action` attribute. For example, `GET /admin/courses/new` displays the course form and `POST /admin/courses` saves it. [Live page router](../routes/views.routes.js)
+
+## Using the workspaces
+
+- **Visitors** can search the catalog by course code, title, or department. To create a student account, enter your name and email, then enter the same password twice. Student ID and department are optional. Open **Appearance** in the header to choose Light, Dark, or System and an accent. The browser remembers these choices for this site.
+- **Students** select a course and register for a specific section. **My enrollments** shows confirmed seats and waitlist places. **Weekly schedule** lists meetings and rooms. **Academic record** shows completed enrollments and cumulative GPA.
+- **Faculty** open **My sections**, choose the roster for a section they teach, and save letter grades in its gradebook.
+- **Administrators** create a course, assign a faculty member to a section, and set its term, meeting times, and capacity. **Reports** compares occupied and remaining seats and waitlisted registrations by section for the current term. The table lists exact counts, including total capacity.
+- **All signed-in users** can open the avatar menu for appearance, sign-out, and account settings. Choose **Sign out** and confirm to end the current browser session, or cancel to keep working. Email changes require the current password. A password change refreshes the current session and invalidates older sessions and bearer tokens.
 
 ## Registration rules
 

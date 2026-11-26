@@ -1,9 +1,6 @@
 <%- include('../partials/header') %>
-<%- include('../partials/page-heading', { eyebrow: 'COURSE CATALOG', description: 'Search by course code or title, or browse by department.' }) %>
-<section class="catalog-banner">
-  <div class="banner-copy"><h2>Find your next course.</h2><p>Browse courses and compare prerequisites, meeting times, and seat availability for <%= term %>.</p></div>
-  <div class="banner-photo"><img src="/images/library-study.webp" width="1200" height="800" alt=""></div>
-</section>
+<%- include('../partials/page-heading', { eyebrow: termLabel, description: 'Search by course code or title, or browse by department.' }) %>
+<% const filtered = Boolean(q || department); %>
 <form class="filter-bar" action="/catalog/courses" method="get">
   <div class="search-field">
     <label for="q">Course name or code</label>
@@ -20,8 +17,14 @@
   </div>
   <button class="button primary" type="submit"><%- include('../partials/icon', { name: 'search' }) %> Find courses</button>
 </form>
+<% if (!filtered) { %>
+  <aside class="catalog-banner">
+    <p>Choose a course to compare section times, available seats, and prerequisites.</p>
+    <div class="banner-photo"><img src="/images/library-study.webp" width="1200" height="800" alt=""></div>
+  </aside>
+<% } %>
 <div class="section-heading">
-  <h2><%= q || department ? 'Search results' : 'All courses' %> <span class="count"><%= meta.total %></span></h2>
+  <h2><%= filtered ? 'Search results' : 'All courses' %> <span class="count" <% if (filtered && courses.length) { %>data-result-cue<% } %>><%= meta.total %></span></h2>
   <% if ((q || department) && courses.length) { %><a class="text-link" href="/catalog/courses">Clear filters</a><% } %>
 </div>
 <% if (courses.length) { %>
@@ -31,7 +34,7 @@
 <% } else { %>
   <div class="empty-state">
     <%- include('../partials/icon', { name: 'search' }) %>
-    <h2>No courses found</h2><p>Try another keyword or browse all departments.</p>
+    <h2 <% if (filtered) { %>data-result-cue<% } %>>No courses found</h2><p>Try another keyword or browse all departments.</p>
     <a class="button secondary" href="/catalog/courses">Clear filters</a>
   </div>
 <% } %>

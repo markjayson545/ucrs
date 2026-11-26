@@ -27,6 +27,18 @@ function errorHandler(err, req, res, next) {
         if (process.env.NODE_ENV === 'production') message = 'Internal Server Error';
     }
 
+    if (res.locals.registrationForm && (status === 400 || status === 409)) {
+        const draft = {};
+        for (const field of ['name', 'email', 'idNumber', 'department']) {
+            if (typeof req.body[field] === 'string') draft[field] = req.body[field];
+        }
+        return res.set('Cache-Control', 'no-store').status(status).render('auth/register', {
+            title: 'Create your account',
+            registrationDraft: draft,
+            registrationError: errors?.map(error => error.message).join(' ') || message,
+        });
+    }
+
     if (res.locals.pageRequest && req.get('X-Portal-Form') === '1') {
         if (status >= 500) message = 'The portal could not save your changes. Try again.';
         return res.status(status).json({ success: false, message, errors });

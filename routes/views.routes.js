@@ -47,7 +47,8 @@ router.use(['/student', '/faculty', '/admin', '/account'], (req, res, next) => {
 router.get('/', (req, res) => res.render('index', { title: 'University Course Registration' }));
 router.get('/auth/login', (req, res) => res.render('auth/login', {
     title: 'Sign in',
-    registrationComplete: req.query.registered === '1',
+    loginNotice: req.query.signedOut === '1' ? 'You’re signed out.' :
+        req.query.registered === '1' ? 'Account created. You can sign in now.' : '',
 }));
 router.get('/auth/register', (req, res) => res.render('auth/register', { title: 'Create your account' }));
 router.get('/catalog/courses', asyncHandler(portal.catalog));

@@ -6,35 +6,38 @@
       <%- include('../partials/appearance-trigger') %>
     </nav>
     <div class="auth-form-wrap">
+      <% const draft = typeof registrationDraft === 'undefined' ? {} : registrationDraft; %>
       <h1>Create an account</h1>
       <p>Student accounts can browse courses, enroll, and track grades.</p>
       <form id="register-form" action="/auth/register" method="post"
         <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Creating your account…" data-success="/auth/login?registered=1"<% } %>>
+        <% if (typeof registrationError === 'string') { %>
+          <p class="form-feedback" data-kind="error" role="alert"><%= registrationError %></p>
+        <% } %>
         <label for="name">Full name</label>
-        <input id="name" name="name" autocomplete="name" maxlength="100" required>
+        <input id="name" name="name" value="<%= draft.name || '' %>" autocomplete="name" maxlength="100" required>
         <label for="email">University email</label>
-        <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.edu" required>
+        <input id="email" name="email" type="email" value="<%= draft.email || '' %>" autocomplete="email" placeholder="you@example.edu" required>
         <div class="form-grid">
           <div>
             <label for="idNumber">Student ID <span class="optional">(optional)</span></label>
-            <input id="idNumber" name="idNumber" placeholder="2026-00101">
+            <input id="idNumber" name="idNumber" value="<%= draft.idNumber || '' %>" maxlength="50" placeholder="2026-00101">
           </div>
           <div>
-            <label for="department">Department</label>
-            <select id="department" name="department" required>
-              <option value="">Select department</option>
-              <option>Computer Science</option>
-              <option>Mathematics</option>
-              <option>Humanities</option>
-            </select>
+            <label for="department">Department <span class="optional">(optional)</span></label>
+            <input id="department" name="department" value="<%= draft.department || '' %>" maxlength="100" list="department-suggestions">
+            <datalist id="department-suggestions">
+              <option value="Computer Science"></option><option value="Mathematics"></option><option value="Humanities"></option>
+            </datalist>
           </div>
         </div>
         <label for="password">Password</label>
         <div class="password-field">
           <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" aria-describedby="password-hint" required>
-          <button type="button" data-password="password" aria-label="Show password" aria-pressed="false">Show</button>
+          <button type="button" data-password="password" aria-controls="password" aria-label="Show password" hidden>Show</button>
         </div>
         <p id="password-hint" class="field-hint">Use at least 8 characters.</p>
+        <%- include('../partials/confirm-password', { sourceId: 'password', fieldLabel: 'Confirm password' }) %>
         <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Create student account <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>

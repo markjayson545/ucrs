@@ -20,26 +20,27 @@
   }
 
   let preferences = readPreferences();
+  function themeFor(mode) {
+    return mode === 'system' ? (systemTheme.matches ? 'dark' : 'light') : mode;
+  }
+
   function applyPreferences() {
     const { mode, accent } = preferences;
-    root.dataset.theme = mode === 'system'
-      ? (systemTheme.matches ? 'dark' : 'light')
-      : mode;
+    root.dataset.theme = themeFor(mode);
     root.dataset.accent = accent;
   }
 
   applyPreferences();
 
   document.addEventListener('DOMContentLoaded', () => {
-    const dialog = document.querySelector('#appearance-dialog');
-    if (!dialog) return;
-    const form = dialog.querySelector('[data-appearance-form]');
+    const forms = document.querySelectorAll('[data-appearance-form]');
     const themeButtons = document.querySelectorAll('[data-theme-toggle]');
-    let trigger;
 
     function updateControls() {
-      form.elements.mode.value = preferences.mode;
-      form.elements.accent.value = preferences.accent;
+      for (const form of forms) {
+        form.elements.mode.value = preferences.mode;
+        form.elements.accent.value = preferences.accent;
+      }
       const isDark = root.dataset.theme === 'dark';
       for (const button of themeButtons) {
         button.setAttribute('aria-pressed', String(isDark));
@@ -52,92 +53,126 @@
       updateControls();
     }
 
-    function writePreferences(next = preferences) {
+    function writePreferences() {
       try {
-        localStorage.setItem(storageKey, JSON.stringify(next));
+        localStorage.setItem(storageKey, JSON.stringify(preferences));
       } catch {
         // The current page still uses the selected appearance.
       }
     }
 
-    function savePreferences(next) {
+    async function changeAppearance(next, control) {
+      const theme = themeFor(next.mode);
       preferences = next;
-      updateAppearance();
       writePreferences();
-    }
-
-    async function toggleTheme(event) {
-      if (root.hasAttribute('data-theme-transition')) return;
-
-      const mode = root.dataset.theme === 'dark' ? 'light' : 'dark';
-      if (reducedMotion.matches || typeof document.startViewTransition !== 'function') {
-        savePreferences({ ...preferences, mode });
+      if (theme === root.dataset.theme || reducedMotion.matches ||
+          root.hasAttribute('data-theme-transition') || !document.startViewTransition) {
+        updateAppearance();
         return;
       }
 
-      function applyToggle() {
-        preferences = { ...preferences, mode };
-        updateAppearance();
-      }
-
-      const button = event.currentTarget;
-      let { clientX: x, clientY: y } = event;
-      // Native keyboard activation has no pointer coordinates.
-      if (event.detail === 0) {
-        const bounds = button.getBoundingClientRect();
-        x = bounds.left + bounds.width / 2;
-        y = bounds.top + bounds.height / 2;
-      }
+      const bounds = control.getBoundingClientRect();
+      const x = bounds.left + bounds.width / 2;
+      const y = bounds.top + bounds.height / 2;
       const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
       root.style.setProperty('--theme-origin-x', x + 'px');
       root.style.setProperty('--theme-origin-y', y + 'px');
       root.style.setProperty('--theme-radius', radius + 'px');
-      root.dataset.themeTransition = 'to-' + mode;
-      button.dataset.themeActive = '';
-      button.setAttribute('aria-disabled', 'true');
+      root.dataset.themeTransition = 'to-' + theme;
+      control.dataset.themeActive = '';
 
-      // Keep synchronous storage out of the snapshot callback and active frames.
-      const saveOnLeave = () => writePreferences({ ...preferences, mode });
-      window.addEventListener('pagehide', saveOnLeave, { once: true });
       try {
-        const transition = document.startViewTransition(applyToggle);
+        const transition = document.startViewTransition(updateAppearance);
         await transition.finished;
       } catch {
-        // A failed animation must still leave the requested theme applied.
-        applyToggle();
+        updateAppearance();
       } finally {
-        window.removeEventListener('pagehide', saveOnLeave);
         delete root.dataset.themeTransition;
-        delete button.dataset.themeActive;
-        button.removeAttribute('aria-disabled');
+        delete control.dataset.themeActive;
         root.style.removeProperty('--theme-origin-x');
         root.style.removeProperty('--theme-origin-y');
         root.style.removeProperty('--theme-radius');
-        writePreferences();
       }
     }
 
     updateControls();
     systemTheme.addEventListener('change', updateAppearance);
     for (const button of themeButtons) {
-      button.addEventListener('click', toggleTheme);
+      button.addEventListener('click', () => {
+        const mode = themeFor(preferences.mode) === 'dark' ? 'light' : 'dark';
+        changeAppearance({ ...preferences, mode }, button);
+      });
       button.hidden = false;
     }
 
     for (const button of document.querySelectorAll('[data-appearance-open]')) {
+      const panel = document.getElementById(button.getAttribute('popovertarget'));
+      const controls = button.parentElement;
+      const native = typeof panel.showPopover === 'function';
+      button.setAttribute('aria-controls', panel.id);
+      button.setAttribute('aria-expanded', 'false');
       button.hidden = false;
-      button.addEventListener('click', () => {
-        trigger = button;
-        updateControls();
-        dialog.showModal();
-        dialog.dispatchEvent(new Event('portal:open', { bubbles: true }));
+
+      function closePanel() {
+        if (native) panel.hidePopover();
+        else setOpen(false);
+      }
+
+      function placePanel() {
+        const gap = 8;
+        const anchor = button.getBoundingClientRect();
+        if (anchor.bottom <= 0 || anchor.top >= innerHeight) {
+          closePanel();
+          return;
+        }
+        const spaceBelow = innerHeight - anchor.bottom;
+        const flip = spaceBelow < panel.offsetHeight + gap && anchor.top > spaceBelow;
+        const top = flip ? anchor.top - gap - panel.offsetHeight : anchor.bottom + gap;
+        panel.style.top = Math.max(gap, Math.min(top, innerHeight - panel.offsetHeight - gap)) + 'px';
+        panel.style.left = Math.max(gap, Math.min(anchor.right - panel.offsetWidth, root.clientWidth - panel.offsetWidth - gap)) + 'px';
+      }
+
+      function setOpen(open) {
+        button.setAttribute('aria-expanded', String(open));
+        if (!native) panel.hidden = !open;
+        if (open) {
+          window.addEventListener('resize', placePanel);
+          document.addEventListener('scroll', placePanel, true);
+          placePanel();
+          panel.dispatchEvent(new Event('portal:open', { bubbles: true }));
+        } else {
+          window.removeEventListener('resize', placePanel);
+          document.removeEventListener('scroll', placePanel, true);
+        }
+      }
+
+      if (native) {
+        panel.hidden = false;
+        panel.addEventListener('toggle', event => setOpen(event.newState === 'open'));
+      } else {
+        panel.removeAttribute('popover');
+        button.removeAttribute('popovertarget');
+        button.addEventListener('click', () => setOpen(panel.hidden));
+        document.addEventListener('click', event => {
+          if (!panel.hidden && !controls.contains(event.target)) closePanel();
+        });
+        controls.addEventListener('keydown', event => {
+          if (event.key !== 'Escape' || panel.hidden) return;
+          event.stopPropagation();
+          closePanel();
+          button.focus();
+        });
+      }
+      controls.addEventListener('focusout', event => {
+        if (event.relatedTarget && !controls.contains(event.relatedTarget)) closePanel();
       });
     }
-    dialog.addEventListener('close', () => trigger?.focus());
 
-    form.addEventListener('change', () => {
-      savePreferences({ mode: form.elements.mode.value, accent: form.elements.accent.value });
-    });
+    for (const form of forms) {
+      form.addEventListener('change', event => {
+        changeAppearance({ mode: form.elements.mode.value, accent: form.elements.accent.value }, event.target.closest('label'));
+      });
+    }
 
     window.addEventListener('storage', event => {
       if (event.key !== storageKey && event.key !== null) return;

@@ -1,10 +1,16 @@
 <%- include('../partials/header') %>
-<%- include('../partials/page-heading', { eyebrow: 'STUDENT WORKSPACE', description: 'Welcome back, ' + user.name + '.', action: { href: '/catalog/courses', label: 'Explore courses', icon: 'search' } }) %>
-<%- include('../partials/workspace-banner', {
-  heading: 'Your semester at a glance',
-  summary: 'Review the classes and waitlist places you are tracking this term.',
-  href: '/student/enrollments', label: 'My enrollments', photo: 'library-study.webp'
-}) %>
+<%- include('../partials/page-heading', { eyebrow: termLabel, description: 'Welcome back, ' + user.name + '.' }) %>
+<section class="student-tools panel" aria-label="Registration tools">
+  <form class="student-search" action="/catalog/courses" method="get" role="search">
+    <label for="student-course-query">Find a course</label>
+    <input id="student-course-query" name="q" type="search" maxlength="100" placeholder="Course name or code">
+    <button class="button primary" type="submit"><%- include('../partials/icon', { name: 'search' }) %>Search catalog</button>
+  </form>
+  <nav class="chips" aria-label="My registration">
+    <a class="button secondary" href="/student/enrollments">My enrollments</a>
+    <a class="button secondary" href="/student/schedule">Weekly schedule</a>
+  </nav>
+</section>
 <div class="stats-grid">
   <% stats.forEach(([label, value, icon]) => { %>
     <article class="stat-card">

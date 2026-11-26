@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+public/vendor/chartjs/
 jspm_packages/
 
 # Local database data (MongoDB container volume)

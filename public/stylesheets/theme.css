@@ -95,7 +95,8 @@
   :root[data-theme-transition] *::before,
   :root[data-theme-transition] *::after { transition: none !important; }
 
-  [data-theme-active] .theme-toggle-icons { view-transition-name: theme-toggle-icon; }
+  [data-theme-active] .theme-toggle-icons,
+  .theme-option[data-theme-active] > .icon { view-transition-name: theme-toggle-icon; }
   :root[data-theme-transition]::view-transition-group(root),
   :root[data-theme-transition]::view-transition-group(theme-toggle-icon),
   :root[data-theme-transition]::view-transition-old(root),

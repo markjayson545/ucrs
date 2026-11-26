@@ -7,14 +7,31 @@
 </div>
 <section class="panel">
   <div class="panel-heading"><h2>Enrollment by section</h2><span class="badge"><%= term %> · <%= report.utilization %>% filled</span></div>
-  <% if (!report.sections.length) { %><p class="empty-state">No sections are scheduled for this term.</p><% } %>
-  <% report.sections.forEach(section => { %>
-    <div class="report-row">
-      <div class="row-between"><strong><%= section.course?.code || 'Course unavailable' %> · <%= section.sectionCode %></strong><span><%= section.enrolledCount %> / <%= section.capacity %></span></div>
-      <meter data-meter min="0" max="<%= section.capacity %>" value="<%= section.enrolledCount %>" aria-label="Seat occupancy"></meter>
-      <small class="muted"><%= section.capacity - section.enrolledCount %> seats remaining · <%= section.waitlisted %> waitlisted</small>
+  <% if (!report.sections.length) { %>
+    <p class="empty-state">No sections are scheduled for this term.</p>
+  <% } else { %>
+    <div id="report-plot" hidden>
+      <div class="report-chart"><canvas aria-hidden="true"></canvas></div>
+      <label hidden>Sections shown <select data-chart-range></select></label>
     </div>
-  <% }) %>
+    <div class="table-wrap">
+      <table id="report-sections">
+        <caption class="sr-only">Seat counts and waitlists by section</caption>
+        <thead><tr><th scope="col">Section</th><th scope="col">Seats taken</th><th scope="col">Seats remaining</th><th scope="col">Waitlisted</th><th scope="col">Capacity</th></tr></thead>
+        <tbody>
+          <% report.sections.forEach(section => { %>
+            <tr>
+              <th scope="row"><%= section.course?.code || 'Course unavailable' %> · <%= section.sectionCode %></th>
+              <td><%= section.enrolledCount %></td><td><%= section.capacity - section.enrolledCount %></td>
+              <td><%= section.waitlisted %></td><td><%= section.capacity %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <script defer src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script defer src="/javascripts/reports.js"></script>
+  <% } %>
   <p class="table-note">Totals count seats across sections, so a student can account for more than one seat.</p>
 </section>
 <%- include('../partials/footer') %>

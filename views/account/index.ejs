@@ -36,7 +36,7 @@
         <input id="new-password" name="newPassword" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-length">
         <p class="field-hint" id="password-length">Use at least 8 characters.</p>
       </div>
-      <div><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required></div>
+      <%- include('../partials/confirm-password', { sourceId: 'new-password', fieldLabel: 'Confirm new password' }) %>
       <div class="form-actions">
         <button class="button primary" type="submit" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview password change' : 'Update password' %></button>
       </div>
@@ -47,7 +47,7 @@
   <section class="panel" aria-labelledby="preferences-heading">
     <div class="panel-heading"><h2 id="preferences-heading">Appearance</h2></div>
     <p class="muted">Set your theme and accent for this browser.</p>
-    <%- include('../partials/appearance-trigger') %>
+    <%- include('../partials/appearance-trigger', { appearanceId: 'account-appearance', quickSwitch: true }) %>
   </section>
 </div>
 <%- include('../partials/footer') %>

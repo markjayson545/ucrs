@@ -66,7 +66,7 @@ exports.enrollments = async (req, res) => {
 
 exports.schedule = async (req, res) => {
     const enrollments = await enrollmentService.listForStudent(req.user._id);
-    res.render('student/schedule', { title: 'Weekly schedule', meetings: enrollmentService.timetable(enrollments) });
+    res.render('student/schedule', { title: 'Weekly schedule', enrollments, meetings: enrollmentService.timetable(enrollments) });
 };
 
 exports.transcript = async (req, res) => {

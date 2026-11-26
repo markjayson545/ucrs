@@ -16,7 +16,7 @@
     </div>
     <div class="profile-quick">
       <p>Quick settings</p>
-      <%- include('appearance-trigger') %>
+      <%- include('appearance-trigger', { quickSwitch: true }) %>
     </div>
     <nav class="profile-links" aria-label="Account">
       <a href="/<%= role %>"><%- include('icon', { name: 'grid' }) %>Workspace overview</a>
@@ -26,8 +26,14 @@
       <% if (preview) { %>
         <a href="/"><%- include('icon', { name: 'arrow' }) %>Exit preview</a>
       <% } else { %>
-        <form action="/auth/logout" method="post">
-          <button type="submit"><%- include('icon', { name: 'logout' }) %>Sign out</button>
+        <% const signOutPrompt = 'Sign out of this browser?'; %>
+        <form action="/auth/logout" method="post" data-confirm="<%= signOutPrompt %>"
+          data-confirm-message="You’ll need to sign in again to open your workspace.">
+          <details data-confirm-disclosure>
+            <summary><span>Sign out</span><span>Cancel sign-out</span></summary>
+            <p><%= signOutPrompt %></p>
+            <button type="submit"><%- include('icon', { name: 'logout' }) %>Sign out</button>
+          </details>
         </form>
       <% } %>
     </nav>

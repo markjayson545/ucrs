@@ -1,10 +1,10 @@
 <%- include('../partials/header') %>
 <%- include('../partials/page-heading', { eyebrow: 'STUDENT WORKSPACE', description: 'Your weekly class times and rooms for ' + term + '.', action: { href: '/student/enrollments', label: 'My enrollments', icon: 'book' } }) %>
 <% if (meetings.some(({ enrollment }) => enrollment.status === 'waitlisted')) { %>
-  <p class="notice">Waitlisted classes are marked as pending. A waitlist place becomes a confirmed class when you are promoted.</p>
+  <p class="notice">Waitlisted classes appear here so you can plan your week. Your seat is confirmed when you are promoted.</p>
 <% } %>
 <section class="panel">
-  <div class="panel-heading"><h2>Weekly timetable</h2><span class="badge"><%= termLabel %></span></div>
+  <div class="panel-heading"><h2><%= termLabel %></h2><%- include('../partials/enrollment-summary') %></div>
   <div class="week-grid">
     <% const labels = { MON: 'Monday', TUE: 'Tuesday', WED: 'Wednesday', THU: 'Thursday', FRI: 'Friday', SAT: 'Saturday' }; %>
     <% days.forEach(day => {

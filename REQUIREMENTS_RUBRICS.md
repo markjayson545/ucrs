@@ -44,9 +44,9 @@ The rubric allocates **100 points** across functionality and engineering practic
 
 | Criterion | Where to review or demonstrate it |
 | --- | --- |
-| Core functionality | Run `npm run check:system` against a test replica set. The walkthrough covers course and section management, registration rules, the last-seat race, waitlist promotion, grading, transcripts, and reports. |
+| Core functionality | Run `npm run check:system` against a test replica set. The check exercises course and section management, registration rules, simultaneous requests for the last seat, waitlist promotion, grading, transcripts, and reports. Match the browser workflows to the [page map](docs/CONNECTING-VIEWS.md). |
 | Database design | Review the schemas and indexes in [models](models/) and the transaction boundaries in [services](services/). |
 | Roles and security | Review the JWT and browser session middleware, then verify protected routes and account changes with `npm run check:system`. |
 | API design and validation | Start with [the API overview](README.md#api-quick-reference) and run [the sample requests](docs/API-EXAMPLES.md). Follow individual routes through [the file walkthrough](docs/FILE-CONNECTIONS.md). |
 | Documentation and testing | Use [the README](README.md) for setup. Run `npm run check:views` for EJS routes and assets, then `npm run check:system` with MongoDB. |
-| Polish | Demonstrate catalog pagination, filters, the profile menu, and keyboard-accessible appearance controls in the live portal or preview. |
+| Admin reports and polish | Compare term totals with the section chart and table at `/admin/reports`. The JSON report accepts a term filter. The public header offers theme and accent choices in one popover. |
