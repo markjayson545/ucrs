@@ -29,8 +29,19 @@ A GET displays a page. Forms send changes to the path in their `action` attribut
 
 ## Registration rules
 
+Students who follow **Sign in to enroll** or **Sign in to join waitlist** from the catalog return to that course after signing in. They can also create an account along the way. On the course page, they choose the section and submit their registration.
+
 - The active registration term defaults to `2026-1`. Students can take up to **18 credits** per term and need a grade of **D or higher** in their prerequisites.
 - Registration checks the student's confirmed timetable for overlaps and prevents multiple registrations for the same course in the term. Pending waitlist places appear on the schedule with a label.
 - A full section places eligible students on its waitlist. When an open section gains seats, the service checks the waiting students in order and promotes the earliest eligible student. Students whose current schedule or credit load blocks promotion keep their place in the queue.
 - Faculty publish grades for their own sections. A submitted grade completes the enrollment and appears in the transcript. GPA weights grade points by course credits.
 - A section with active registrations keeps its meeting times and rooms. A section with enrollment history can be closed. Courses in use by sections, prerequisites, or enrollment records are protected from deletion.
+
+## Course images and profile photos
+
+| To change | Where to go | Where the image appears |
+| --- | --- | --- |
+| A course image | As an administrator, open **Create a course** or **Edit course**, choose an image, then select **Save course**. | The public catalog, the course detail page, and course cards in the student workspace. |
+| Your profile photo | Open **Account settings**, choose a photo under **Profile**, then select **Save profile**. | Your own account menu and profile settings. |
+
+Choose a JPEG, PNG, or WebP file up to 4 MB and 40 megapixels. Review the preview or select **Undo image change** before saving. To remove a saved image, choose **Use the department image instead** or **Use my initials instead**, then save.

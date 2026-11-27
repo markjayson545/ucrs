@@ -47,16 +47,16 @@ async function checkPrerequisites(ids, session, courseId) {
     }
 }
 
-exports.create = (data) => mongoose.connection.transaction(async session => {
+exports.create = (data, image = {}) => mongoose.connection.transaction(async session => {
     const { code, title, description, credits, department, prerequisites = [] } = data;
     const uniqueIds = [...new Set(prerequisites.map(String))];
     await checkPrerequisites(uniqueIds, session);
-    const course = new Course({ code, title, description, credits, department, prerequisites: uniqueIds });
+    const course = new Course({ code, title, description, credits, department, prerequisites: uniqueIds, ...image });
     await course.save({ session });
     return course;
 });
 
-exports.update = (id, data) => mongoose.connection.transaction(async session => {
+exports.update = (id, data, image = {}) => mongoose.connection.transaction(async session => {
     const course = await Course.findByIdAndUpdate(id, { $inc: { __v: 1 } }, {
         session, timestamps: false, returnDocument: 'after',
     });
@@ -77,6 +77,7 @@ exports.update = (id, data) => mongoose.connection.transaction(async session => 
     for (const key of ['title', 'description', 'department']) {
         if (data[key] !== undefined) course[key] = data[key];
     }
+    course.set(image);
     await course.save({ session });
     return course;
 });

@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 <a class="back-link" href="/admin/courses">← Course management</a>
 <%- include('../partials/page-heading', { eyebrow: 'ADMINISTRATION', description: 'Set the details students will see in the catalog.' }) %>
-<form class="panel form-panel" method="post" action="<%= course ? '/admin/courses/' + course._id + '/edit' : '/admin/courses' %>"
+<form class="panel form-panel" method="post" enctype="multipart/form-data" action="<%= course ? '/admin/courses/' + course._id + '/edit' : '/admin/courses' %>"
   <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
   <div class="form-grid">
     <div>
@@ -17,6 +17,7 @@
   <input id="department" name="department" value="<%= course?.department || '' %>" required>
   <label for="description">Description</label>
   <textarea id="description" name="description" rows="5"><%= course?.description || '' %></textarea>
+  <%- include('../partials/image-editor', { kind: 'course', record: course }) %>
   <% const choices = courses.filter(candidate => !course || String(candidate._id) !== String(course._id)); %>
   <% if (choices.length) { %>
     <fieldset>

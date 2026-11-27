@@ -4,6 +4,9 @@ const enrollmentService = require('../services/enrollment.service');
 const transcriptService = require('../services/transcript.service');
 const reportService = require('../services/report.service');
 const userService = require('../services/user.service');
+const imageService = require('../services/image.service');
+const User = require('../models/User');
+const Course = require('../models/Course');
 const { sectionInput, meetingFromForm } = require('../validators/section.validator');
 const { pointsByLetter } = require('../utils/gpa');
 const AppError = require('../utils/AppError');
@@ -13,6 +16,16 @@ function saved(req, res, path, message) {
     if (req.get('X-Portal-Form') === '1') return res.json({ redirectTo: path });
     res.redirect(303, path);
 }
+
+exports.courseImage = async (req, res) => {
+    const image = await imageService.read(Course, req.params.id);
+    res.set('Cache-Control', 'no-cache').type('image/webp').send(image);
+};
+
+exports.profilePhoto = async (req, res) => {
+    const image = await imageService.read(User, req.user._id);
+    res.set('Cache-Control', 'private, no-store').type('image/webp').send(image);
+};
 
 exports.catalog = async (req, res) => {
     const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
@@ -94,7 +107,8 @@ exports.account = (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     res.locals.returnTo = '/account';
-    await userService.updateProfile(req.user._id, req.body);
+    const image = await imageService.prepare(req.file, req.body.removeImage, 'profile');
+    await userService.updateProfile(req.user._id, req.body, image);
     saved(req, res, '/account', 'Your profile was updated.');
 };
 
@@ -157,13 +171,15 @@ exports.courseForm = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
     res.locals.returnTo = '/admin/courses/new';
-    await courseService.create(req.body);
+    const image = await imageService.prepare(req.file, req.body.removeImage, 'course');
+    await courseService.create(req.body, image);
     saved(req, res, '/admin/courses', 'Course created.');
 };
 
 exports.updateCourse = async (req, res) => {
     res.locals.returnTo = '/admin/courses/' + req.params.id + '/edit';
-    await courseService.update(req.params.id, req.body);
+    const image = await imageService.prepare(req.file, req.body.removeImage, 'course');
+    await courseService.update(req.params.id, req.body, image);
     saved(req, res, '/admin/courses', 'Course updated.');
 };
 

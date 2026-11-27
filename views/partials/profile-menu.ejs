@@ -1,10 +1,11 @@
 <% const roleLabel = { student: 'Student', faculty: 'Faculty', admin: 'Administrator' }[role]; %>
 <% const accountUrl = preview ? '/account?role=' + role : '/account'; %>
-<% const initials = user.name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase(); %>
 <details class="profile-menu" data-profile-menu>
   <summary class="profile-trigger">
     <span class="sr-only">Account menu</span>
-    <span class="avatar" aria-hidden="true"><%= initials %></span>
+    <span class="avatar" aria-hidden="true">
+      <% if (user.imageVersion) { %><img src="<%= images.profilePhoto(user) %>" alt=""><% } else { %><%= images.initials(user.name) %><% } %>
+    </span>
     <span class="profile-trigger-name" aria-hidden="true"><%= user.name %></span>
     <span class="profile-chevron"><%- include('icon', { name: 'chevron' }) %></span>
   </summary>
@@ -28,7 +29,7 @@
       <% } else { %>
         <% const signOutPrompt = 'Sign out of this browser?'; %>
         <form action="/auth/logout" method="post" data-confirm="<%= signOutPrompt %>"
-          data-confirm-message="You’ll need to sign in again to open your workspace.">
+          data-confirm-message="Any unsaved changes on this page will be lost.">
           <details data-confirm-disclosure>
             <summary><span>Sign out</span><span>Cancel sign-out</span></summary>
             <p><%= signOutPrompt %></p>

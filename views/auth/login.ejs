@@ -8,10 +8,10 @@
     <div class="auth-form-wrap">
       <h1>Sign in</h1>
       <p>Use your campus account to open your workspace.</p>
-      <form id="login-form" action="/auth/session" method="post"
+      <form id="login-form" action="/auth/session<%= courseQuery %>" method="post"
         <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Signing in…"<% } %>>
         <label for="email">University email</label>
-        <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.edu" required>
+        <input id="email" name="email" type="email" value="<%= typeof loginEmail === 'string' ? loginEmail : '' %>" autocomplete="username" placeholder="you@example.edu" required>
         <label for="password">Password</label>
         <div class="password-field">
           <input id="password" name="password" type="password" autocomplete="current-password" required>
@@ -20,9 +20,11 @@
         <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Sign in <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>
-        <p class="form-feedback" role="status" <% if (typeof loginNotice === 'undefined' || !loginNotice) { %>hidden<% } %>><%= typeof loginNotice === 'string' ? loginNotice : '' %></p>
+        <% const failed = typeof loginError === 'string'; %>
+        <% const message = failed ? loginError : (typeof loginNotice === 'string' ? loginNotice : ''); %>
+        <p class="form-feedback" role="status" <%= failed ? 'data-kind=error' : '' %> <%= message ? '' : 'hidden' %>><%= message %></p>
       </form>
-      <p class="auth-switch">New student? <a href="/auth/register">Create an account</a></p>
+      <p class="auth-switch">New student? <a href="/auth/register<%= courseQuery %>">Create an account</a></p>
     </div>
   </section>
   <%- include('../partials/auth-story', { photo: 'campus-courtyard.webp', message: 'Find your place on campus.' }) %>

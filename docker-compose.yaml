@@ -1,4 +1,5 @@
 services:
+  # UCRS Web Application, built from the Dockerfile in this repo.
   ucrs:
     build:
       context: .
@@ -15,7 +16,7 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-
+  # MongoDB Community Server
   mongodb:
     image: mongodb/mongodb-community-server:latest
     entrypoint:
@@ -41,9 +42,7 @@ services:
       retries: 15
       start_period: 10s
 
-  # MongoDB Compass Web. The container listens on 8080 (not 8001), so the host
-  # port is mapped to 8080. Open http://localhost:8001 and log in with the
-  # basic-auth credentials below.
+  # MongoDB Compass Web. 
   compass:
     image: haohanyang/compass-web:0.5.2
     ports:

@@ -1,0 +1,24 @@
+<% const profile = kind === 'profile';
+const label = profile ? 'Profile photo' : 'Course image';
+const savedImage = profile ? images.profilePhoto(record) : images.courseCover(record);
+const defaultImage = profile ? '' : images.courseCover({ department: record?.department }); %>
+<fieldset class="image-editor" data-image-editor>
+  <legend><%= label %> <span class="optional">(optional)</span></legend>
+  <div class="image-editor-layout">
+    <div class="image-preview <%= profile ? 'photo-preview' : 'cover-preview' %>" aria-hidden="true">
+      <% if (profile) { %><span><%= images.initials(record.name) %></span><% } %>
+      <img alt="" data-image-preview data-saved="<%= savedImage %>" data-fallback="<%= defaultImage %>"
+        <% if (savedImage) { %>src="<%= savedImage %>"<% } else { %>hidden<% } %>>
+    </div>
+    <div>
+      <label for="image"><%= record?.imageVersion ? 'Replace' : 'Choose' %> <%= label.toLowerCase() %></label>
+      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" aria-describedby="image-hint image-status">
+      <p id="image-hint" class="field-hint">JPEG, PNG or WebP, up to 4 MB. <%= profile ? 'Visible in your own account menu.' : 'Shown in the public course catalog.' %></p>
+      <% if (record?.imageVersion) { %>
+        <label class="image-remove"><input name="removeImage" value="1" type="checkbox"> <%= profile ? 'Use my initials instead' : 'Use the department image instead' %></label>
+      <% } %>
+      <p id="image-status" class="field-hint" role="status"></p>
+      <button type="button" class="text-button" data-undo-image hidden>Undo image change</button>
+    </div>
+  </div>
+</fieldset>

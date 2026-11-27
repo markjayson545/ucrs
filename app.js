@@ -16,6 +16,9 @@ function createApp({ preview = false } = {}) {
     const app = express();
 
     app.locals.preview = preview;
+    app.locals.images = require('./utils/image-display');
+    app.locals.courseQuery = '';
+    app.locals.registeredUrl = '/auth/login?registered=1';
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
 

@@ -55,10 +55,12 @@
           <article class="showcase-panel" id="showcase-<%= workspace.key %>">
             <div class="showcase-caption">
               <div><h3><%= workspace.title %></h3><p><%= workspace.text %></p></div>
+              <% if (preview || !user || user.role === workspace.key) { %>
               <a class="button secondary" href="<%= preview ? workspace.path : user?.role === workspace.key ? '/' + workspace.key : '/auth/login' %>">
                 <%= preview ? 'Open preview' : user?.role === workspace.key ? 'Open workspace' : 'Sign in' %>
                 <%- include('partials/icon', { name: 'arrow' }) %>
               </a>
+              <% } %>
             </div>
             <a class="screenshot-link" href="/images/showcase/<%= workspace.image %>" aria-label="Open full-size <%= workspace.role.toLowerCase() %> workspace screenshot">
               <img src="/images/showcase/<%= workspace.image %>" width="1440" height="850" loading="lazy"

@@ -10,7 +10,7 @@ exports.register = asyncHandler(async (req, res) => {
         name, email, password, idNumber: idNumber || undefined, department, role: 'student'
     });
     if (req.baseUrl === '/auth' && req.is('application/x-www-form-urlencoded')) {
-        return res.redirect(303, '/auth/login?registered=1');
+        return res.redirect(303, res.locals.registeredUrl || req.app.locals.registeredUrl);
     }
     success(res, { user, token: signToken(user)}, 201);
 });

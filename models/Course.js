@@ -29,6 +29,8 @@ const courseSchema = new mongoose.Schema(
             required: true,
             trim: true
         },
+        imageData: { type: Buffer, select: false },
+        imageVersion: String,
         prerequisites: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Course'

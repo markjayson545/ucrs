@@ -79,6 +79,8 @@ The auth and course JSON routers also accept their original `/auth` and `/course
 
 ## Documentation
 
+Administrators can add course images, and each account holder can choose a profile photo. Both are optional and use the existing MongoDB connection. [Image upload instructions](docs/CONNECTING-VIEWS.md#course-images-and-profile-photos)
+
 - Trace startup, browser forms, API endpoints, and database writes. [How the files connect](docs/FILE-CONNECTIONS.md)
 - Find each portal page, its template, and the registration rules for each role. [Browser routes and workspaces](docs/CONNECTING-VIEWS.md)
 - Follow sample requests from sign-in through enrollment, grading, and reporting. [API request examples](docs/API-EXAMPLES.md)

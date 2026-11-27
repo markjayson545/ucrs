@@ -20,7 +20,7 @@ router.post('/session', sameOrigin, limitSignIn, loginRules, validate, asyncHand
     if (!user || !user.isActive || !(await user.comparePassword(password))) {
         throw new AppError('Invalid email or password', 401);
     }
-    const redirectTo = '/' + user.role;
+    const redirectTo = res.locals.courseDestination || '/' + user.role;
 
     req.session.regenerate(error => {
         if (error) return next(error);
@@ -32,7 +32,16 @@ router.post('/session', sameOrigin, limitSignIn, loginRules, validate, asyncHand
             res.redirect(303, redirectTo);
         });
     });
-}));
+}), (error, req, res, next) => {
+    if (!req.is('application/x-www-form-urlencoded') || ![400, 401, 429].includes(error.statusCode)) {
+        return next(error);
+    }
+    res.set('Cache-Control', 'no-store').status(error.statusCode).render('auth/login', {
+        title: 'Sign in',
+        loginEmail: typeof req.body.email === 'string' ? req.body.email : '',
+        loginError: error.errors?.map(field => field.message).join(' ') || error.message,
+    });
+});
 
 router.post('/logout', sameOrigin, (req, res, next) => {
     req.session.destroy(error => {

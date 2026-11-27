@@ -34,8 +34,15 @@
 <% } else { %>
   <div class="empty-state">
     <%- include('../partials/icon', { name: 'search' }) %>
-    <h2 <% if (filtered) { %>data-result-cue<% } %>>No courses found</h2><p>Try another keyword or browse all departments.</p>
-    <a class="button secondary" href="/catalog/courses">Clear filters</a>
+    <% if (filtered) { %>
+      <h2 data-result-cue>No courses found</h2><p>Try another keyword or browse all departments.</p>
+      <a class="button secondary" href="/catalog/courses">Clear filters</a>
+    <% } else if (meta.total) { %>
+      <h2>No courses on this page</h2><a class="button secondary" href="/catalog/courses">Back to first page</a>
+    <% } else { %>
+      <h2>No courses in the catalog yet</h2>
+      <% if (role === 'admin') { %><a class="button secondary" href="/admin/courses/new">Create a course</a><% } %>
+    <% } %>
   </div>
 <% } %>
 <% if (meta.pages > 1) { %>

@@ -8,6 +8,7 @@
     <div class="chips">
       <span class="badge"><%= course.credits %> credits</span>
       <span class="badge"><%= course.prerequisites.length ? 'Prerequisites apply' : 'No prerequisites' %></span>
+      <% if (role === 'admin') { %><a class="text-link" href="/admin/courses/<%= course._id %>/edit">Edit course</a><% } %>
     </div>
   </div>
   <div class="detail-photo"><%- include('../partials/course-photo', { course }) %></div>
@@ -46,7 +47,7 @@
             <%= full ? 'Preview waitlist' : 'Preview enrollment' %>
           </button>
         <% } else if (open && !user) { %>
-          <a class="button primary" href="/auth/login">Sign in to enroll</a>
+          <a class="button primary" href="/auth/login?course=<%= course._id %>"><%= full ? 'Sign in to join waitlist' : 'Sign in to enroll' %></a>
         <% } else if (open && role === 'student') { %>
           <% if (registration?.status === 'completed') { %>
             <a class="text-link" href="/student/transcript">View your completed course ↗</a>

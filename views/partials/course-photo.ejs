@@ -1,4 +1,1 @@
-<% const department = course.department.toLowerCase();
-const photo = department.includes('humanit') ? 'teaching-studio.webp'
-  : department.includes('math') ? 'campus-courtyard.webp' : 'library-study.webp'; %>
-<img src="/images/<%= photo %>" width="1200" height="800" alt="" loading="lazy">
+<img src="<%= images.courseCover(course) %>" width="1200" height="800" alt="" loading="lazy">

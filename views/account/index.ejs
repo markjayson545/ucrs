@@ -8,7 +8,8 @@
       <div><dt>Role</dt><dd><%= { student: 'Student', faculty: 'Faculty', admin: 'Administrator' }[role] %></dd></div>
       <div><dt>Campus ID</dt><dd><%= user.idNumber || 'Unassigned' %></dd></div>
     </dl>
-    <form action="/account/profile" method="post" <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+    <form action="/account/profile" method="post" enctype="multipart/form-data" <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+      <%- include('../partials/image-editor', { kind: 'profile', record: user }) %>
       <div class="form-grid">
         <div><label for="name">Full name</label><input id="name" name="name" value="<%= user.name %>" autocomplete="name" required maxlength="100"></div>
         <div><label for="email">University email</label><input id="email" name="email" type="email" value="<%= user.email %>" autocomplete="email" required></div>

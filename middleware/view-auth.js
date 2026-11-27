@@ -7,7 +7,7 @@ exports.loadPageUser = async (req, res, next) => {
 
         if(req.session?.userId){
             const user = await User.findById(req.session.userId)
-            .select('name email role idNumber department isActive authVersion')
+            .select('name email role idNumber department isActive authVersion imageVersion')
             .lean();
 
             if (user?.isActive && (req.session.authVersion ?? 0) === (user.authVersion ?? 0)) {

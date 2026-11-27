@@ -32,6 +32,8 @@ const userSchema = new mongoose.Schema({
         department: {
             type: String,
             trim: true},
+        imageData: { type: Buffer, select: false },
+        imageVersion: String,
         isActive: {
             type: Boolean,
             default: true},

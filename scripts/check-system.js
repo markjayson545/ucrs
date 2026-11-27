@@ -20,6 +20,53 @@ const Section = require('../models/Section');
 
 const password = 'CheckCredentials123!';
 
+async function checkImages(request, student, admin) {
+    const sharp = require('sharp');
+    const png = await sharp({ create: { width: 320, height: 180, channels: 3, background: '#345678' } }).png().toBuffer();
+    function upload(fields, bytes) {
+        const form = new FormData();
+        for (const [key, value] of Object.entries(fields)) form.set(key, value);
+        if (bytes) form.set('image', new Blob([bytes], { type: 'image/png' }), 'photo.png');
+        return form;
+    }
+    const course = { code: 'ART101', title: 'Studio', department: 'Arts', credits: '3' };
+    const adminSave = { ...admin, method: 'POST', browserForm: true };
+    await request('/admin/courses', { ...student, method: 'POST', form: upload(course, png), status: 403 });
+    await request('/admin/courses', { ...adminSave, form: upload(course, png) });
+    const list = (await (await request('/api/courses?q=ART101', student)).json()).data;
+    assert.equal(list.length, 1);
+    assert.equal(list[0].imageData, undefined);
+    const courseId = list[0]._id;
+    const edit = '/admin/courses/' + courseId + '/edit';
+    const image = '/catalog/courses/' + courseId + '/image';
+    assert.equal((await request(image)).headers.get('content-type'), 'image/webp');
+    assert.ok((await (await request('/catalog/courses')).text()).includes(image + '?v='));
+    await request(edit, { ...adminSave, form: upload({ title: 'Unchanged cover' }) });
+    const previous = Buffer.from(await (await request(image)).arrayBuffer());
+    await request(edit, { ...adminSave, form: upload(course, Buffer.from('invalid image')), status: 400 });
+    assert.deepEqual(Buffer.from(await (await request(image)).arrayBuffer()), previous);
+    const replacement = await sharp(png).negate().png().toBuffer();
+    await request(edit, { ...adminSave, form: upload(course, replacement) });
+    assert.notDeepEqual(Buffer.from(await (await request(image)).arrayBuffer()), previous);
+    await request(edit, { ...adminSave, form: upload({ removeImage: '1' }) });
+    await request(image, { status: 404 });
+    await request('/api/courses/' + courseId, { ...admin, method: 'DELETE', status: 204 });
+
+    const profile = { name: student.user.name, email: student.user.email, department: 'Arts' };
+    const studentSave = { ...student, method: 'POST', browserForm: true };
+    await request('/account/profile', { ...studentSave, form: upload(profile, png) });
+    await request('/account/photo', { status: 302 });
+    await request('/account/photo', { ...admin, status: 404 });
+    const photo = await request('/account/photo', student);
+    assert.match(photo.headers.get('cache-control'), /no-store/);
+    const metadata = await sharp(Buffer.from(await photo.arrayBuffer())).metadata();
+    assert.deepEqual([metadata.format, metadata.width, metadata.height], ['webp', 256, 256]);
+    assert.match(await (await request('/student', student)).text(), /src="\/account\/photo\?v=/);
+    await request('/account/profile', { ...studentSave, form: upload(profile, Buffer.alloc(4 * 1024 * 1024 + 1)), status: 413 });
+    await request('/account/profile', { ...studentSave, form: upload({ ...profile, removeImage: '1' }) });
+    await request('/account/photo', { ...student, status: 404 });
+}
+
 async function run() {
     let server;
     try {
@@ -36,7 +83,8 @@ async function run() {
             if (cookie) headers.Cookie = cookie;
             if (data) headers['Content-Type'] = 'application/json';
             if (browserForm) headers['X-Portal-Form'] = '1';
-            const body = form ? new URLSearchParams(form) : data && JSON.stringify(data);
+            let body = data && JSON.stringify(data);
+            if (form) body = form instanceof FormData ? form : new URLSearchParams(form);
             const response = await fetch(base + path, { method, headers, body, redirect: 'manual' });
             if (response.status !== status) {
                 assert.fail(method + ' ' + path + ' expected ' + status + ', got ' + response.status + ' ' + (await response.text()).slice(0, 280));
@@ -87,6 +135,13 @@ async function run() {
             method: 'POST', form: { ...registration, confirmPassword: password }, status: 303,
         });
         assert.equal(registered.headers.get('location'), '/auth/login?registered=1');
+        const failedSignIn = await request('/auth/session', {
+            method: 'POST', form: { email: registration.email, password: 'IncorrectPassword' }, status: 401,
+        });
+        const signInPage = await failedSignIn.text();
+        assert.match(signInPage, /Invalid email or password/);
+        assert.match(signInPage, /value="register@example.edu"/);
+        assert.ok(!signInPage.includes('IncorrectPassword'));
 
         const admin = await account('Admin', 'admin');
         const faculty = await account('Faculty', 'faculty');
@@ -95,6 +150,7 @@ async function run() {
         const second = await account('Second');
         const third = await account('Third');
         const assistant = await account('Assistant');
+        await checkImages(request, student, admin);
         assert.match(await (await request('/api/auth/me', student)).text(), /"role":"student"/);
         await request('/admin', { ...student, status: 403 });
         await request('/admin/users/' + assistant.user._id + '/access', {
@@ -124,6 +180,15 @@ async function run() {
         const courseList = await (await request('/courses', admin)).json();
         const intro = courseList.data.find(course => course.code === 'CS101');
         assert.ok(intro);
+        const courseSignInPage = await (await request('/auth/login?course=' + intro._id)).text();
+        assert.ok(courseSignInPage.includes('action="/auth/session?course=' + intro._id + '"'));
+        assert.ok(courseSignInPage.includes('href="/auth/register?course=' + intro._id + '"'));
+        const courseRegistration = await (await request('/auth/register?course=' + intro._id)).text();
+        assert.ok(courseRegistration.includes('data-success="/auth/login?registered=1&amp;course=' + intro._id + '"'));
+        const courseLogin = await request('/auth/session?course=' + intro._id, {
+            method: 'POST', data: { email: student.user.email, password },
+        });
+        assert.equal((await courseLogin.json()).redirectTo, '/catalog/courses/' + intro._id);
         const createCourse = async (code, prerequisites = [], credits = 3) => {
             const response = await request('/api/courses', {
                 ...admin, method: 'POST', data: { code, title: 'Test ' + code, credits, department: 'Computer Science', prerequisites }, status: 201,

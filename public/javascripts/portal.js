@@ -54,6 +54,69 @@
     window.location.assign(event.target.value);
   });
 
+  for (const editor of document.querySelectorAll('[data-image-editor]')) {
+    const input = editor.querySelector('input[type="file"]');
+    const remove = editor.querySelector('[name="removeImage"]');
+    const preview = editor.querySelector('[data-image-preview]');
+    const status = editor.querySelector('[role="status"]');
+    const undo = editor.querySelector('[data-undo-image]');
+
+    function display(source) {
+      preview.hidden = !source;
+      if (source) preview.src = source;
+      else preview.removeAttribute('src');
+    }
+
+    function feedback(message, invalid = false) {
+      status.textContent = message;
+      status.classList.toggle('field-error', invalid);
+      input.setCustomValidity(invalid ? message : '');
+      if (invalid) input.setAttribute('aria-invalid', 'true');
+      else input.removeAttribute('aria-invalid');
+    }
+
+    function update() {
+      const file = input.files[0];
+      undo.hidden = !file && !remove?.checked;
+      display(remove?.checked ? preview.dataset.fallback : preview.dataset.saved);
+      feedback(remove?.checked ? 'The default will be restored when you save.' : '');
+      if (!file) return;
+      if (file.size > 4 * 1024 * 1024) return feedback('Choose an image of 4 MB or less.', true);
+      if (file.type && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        return feedback('Choose a JPEG, PNG, or WebP image.', true);
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (input.files[0] !== file) return;
+        display(reader.result);
+        feedback('New image selected. Save to apply it.');
+      };
+      reader.onerror = () => {
+        if (input.files[0] === file) feedback('This file could not be read. Choose it again.', true);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    input.addEventListener('change', () => {
+      if (remove && input.files.length) remove.checked = false;
+      update();
+    });
+    preview.addEventListener('error', () => {
+      if (input.files.length && preview.getAttribute('src')?.startsWith('data:')) {
+        display(preview.dataset.saved);
+        feedback('This image could not be opened. Choose another JPEG, PNG, or WebP.', true);
+      }
+    });
+    remove?.addEventListener('change', () => { input.value = ''; update(); });
+    undo.addEventListener('click', () => {
+      input.value = '';
+      if (remove) remove.checked = false;
+      update();
+      input.focus();
+    });
+    input.form.addEventListener('reset', () => queueMicrotask(update));
+  }
+
   for (const button of document.querySelectorAll('[data-password]')) {
     const input = document.getElementById(button.dataset.password);
     const field = input.name === 'confirmPassword' ? 'password confirmation' : 'password';
@@ -110,7 +173,7 @@
     const button = dialog.querySelector('[data-dialog-confirm]');
     button.textContent = label;
     dialog.returnValue = '';
-    dialogTrigger = document.activeElement;
+    dialogTrigger = submitter || document.activeElement;
     dialog.showModal();
     if (!confirm) button.focus();
     dialog.dispatchEvent(new Event('portal:open', { bubbles: true }));
@@ -230,7 +293,8 @@
       event.preventDefault();
       if (form.dataset.saving === 'true') return;
       const button = event.submitter;
-      const body = new URLSearchParams(new FormData(form, button || undefined));
+      const values = new FormData(form, button || undefined);
+      const body = form.enctype === 'multipart/form-data' ? values : new URLSearchParams(values);
       fields.forEach(field => field.removeAttribute('aria-invalid'));
       form.dataset.saving = 'true';
       form.setAttribute('aria-busy', 'true');

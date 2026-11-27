@@ -23,11 +23,11 @@ async function verifyCurrentPassword(user, password) {
     }
 }
 
-exports.updateProfile = (userId, { name, email, department, currentPassword }) =>
+exports.updateProfile = (userId, { name, email, department, currentPassword }, image = {}) =>
     mongoose.connection.transaction(async session => {
         const user = await findActiveAccount(userId, session);
         if (email !== user.email) await verifyCurrentPassword(user, currentPassword);
-        user.set({ name, email, department });
+        user.set({ name, email, department, ...image });
         await user.save({ session });
     });
 

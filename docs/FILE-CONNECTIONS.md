@@ -40,4 +40,10 @@ When the student opens `/student/schedule`, the controller loads the student's e
 
 An administrator opening `/admin/reports` sees the other side of the same registration. The report service reads non-cancelled sections and groups waitlisted records by section. The template sends totals and an HTML table to the browser. Chart.js reads the table to plot seats taken and remaining against a separate waitlist bar. The same service provides JSON to `GET /api/reports`. [Report service](../services/report.service.js) · [Report template](../views/admin/reports.ejs) · [Browser chart](../public/javascripts/reports.js)
 
+## How a photo reaches the browser
+
+The profile and course forms send multipart data. After the session, role, and origin checks, Multer reads one file. Sharp decodes it, resizes it, and produces a WebP image without the original metadata. The application saves the image and its version on the same MongoDB record as the form changes. A failed save keeps the previous image. [Upload middleware](../middleware/imageUpload.js) · [Image processing](../services/image.service.js)
+
+Ordinary queries omit the image bytes. Catalog pages request a course cover at `GET /catalog/courses/:id/image`. The account menu requests the signed-in user's own photo at `GET /account/photo`. Records without uploads use the department image or the user's initials. [Page routes](../routes/views.routes.js)
+
 The preview starts separately with `npm run dev:views`. Its entry point calls `createApp({ preview: true })` and mounts a fixture-backed router to render the same templates. Use the live server for persistent registration, sign-in, or API requests. [Preview entry point](../scripts/preview-views.js) · [Preview router](../routes/preview.routes.js)

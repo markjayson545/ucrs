@@ -4,6 +4,7 @@ const portal = require('../controllers/portal.controller');
 const { loadPageUser, requirePageUser, allowPageRoles } = require('../middleware/view-auth');
 const sameOrigin = require('../middleware/sameOrigin');
 const validate = require('../middleware/validate');
+const imageUpload = require('../middleware/imageUpload');
 const { idParam, createRules, updateRules } = require('../validators/course.validator');
 const { profileRules, passwordRules } = require('../validators/account.validator');
 const asyncHandler = require('../utils/asyncHandler');
@@ -16,6 +17,10 @@ const limitAccountChanges = rateLimit({
     limit: 20,
     handler: (req, res, next) => next(new AppError('Too many account changes. Try again later.', 429)),
 });
+
+// Image requests do not consume the next page's one-time notice.
+router.get('/catalog/courses/:id/image', idParam, validate, asyncHandler(portal.courseImage));
+router.get('/account/photo', loadPageUser, requirePageUser, asyncHandler(portal.profilePhoto));
 
 router.use((req, res, next) => {
     if (/^\/api(\/|$)/.test(req.path)) return next();
@@ -54,7 +59,7 @@ router.get('/auth/register', (req, res) => res.render('auth/register', { title: 
 router.get('/catalog/courses', asyncHandler(portal.catalog));
 router.get('/catalog/courses/:id', idParam, validate, asyncHandler(portal.courseDetails));
 router.get('/account', portal.account);
-router.post('/account/profile', limitAccountChanges, profileRules, validate, asyncHandler(portal.updateProfile));
+router.post('/account/profile', limitAccountChanges, imageUpload, profileRules, validate, asyncHandler(portal.updateProfile));
 router.post('/account/password', limitAccountChanges, passwordRules, validate, asyncHandler(portal.changePassword));
 
 router.get('/student', asyncHandler(portal.studentHome));
@@ -64,7 +69,7 @@ router.get('/student/transcript', asyncHandler(portal.transcript));
 router.get('/student/profile', portal.account);
 router.post('/student/enrollments/:id/register', idParam, validate, asyncHandler(portal.register));
 router.post('/student/enrollments/:id/drop', idParam, validate, asyncHandler(portal.drop));
-router.post('/student/profile', limitAccountChanges, profileRules, validate, asyncHandler(portal.updateProfile));
+router.post('/student/profile', limitAccountChanges, imageUpload, profileRules, validate, asyncHandler(portal.updateProfile));
 
 router.get('/faculty', asyncHandler(portal.facultyHome));
 router.get('/faculty/sections', asyncHandler(portal.facultySections));
@@ -76,8 +81,8 @@ router.get('/admin', asyncHandler(portal.adminHome));
 router.get('/admin/courses', asyncHandler(portal.adminCourses));
 router.get('/admin/courses/new', asyncHandler(portal.courseForm));
 router.get('/admin/courses/:id/edit', idParam, validate, asyncHandler(portal.courseForm));
-router.post('/admin/courses', courseCheckboxes, createRules, validate, asyncHandler(portal.createCourse));
-router.post('/admin/courses/:id/edit', idParam, courseCheckboxes, updateRules, validate, asyncHandler(portal.updateCourse));
+router.post('/admin/courses', imageUpload, courseCheckboxes, createRules, validate, asyncHandler(portal.createCourse));
+router.post('/admin/courses/:id/edit', idParam, imageUpload, courseCheckboxes, updateRules, validate, asyncHandler(portal.updateCourse));
 router.post('/admin/courses/:id/delete', idParam, validate, asyncHandler(portal.deleteCourse));
 router.get('/admin/sections', asyncHandler(portal.adminSections));
 router.get('/admin/sections/new', asyncHandler(portal.sectionForm));

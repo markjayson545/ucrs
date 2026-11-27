@@ -9,8 +9,8 @@
       <% const draft = typeof registrationDraft === 'undefined' ? {} : registrationDraft; %>
       <h1>Create an account</h1>
       <p>Student accounts can browse courses, enroll, and track grades.</p>
-      <form id="register-form" action="/auth/register" method="post"
-        <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Creating your account…" data-success="/auth/login?registered=1"<% } %>>
+      <form id="register-form" action="/auth/register<%= courseQuery %>" method="post"
+        <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Creating your account…" data-success="<%= registeredUrl %>"<% } %>>
         <% if (typeof registrationError === 'string') { %>
           <p class="form-feedback" data-kind="error" role="alert"><%= registrationError %></p>
         <% } %>
@@ -43,7 +43,7 @@
         </button>
         <p class="form-feedback" role="status" hidden></p>
       </form>
-      <p class="auth-switch">Already have an account? <a href="/auth/login">Sign in</a></p>
+      <p class="auth-switch">Already have an account? <a href="/auth/login<%= courseQuery %>">Sign in</a></p>
     </div>
   </section>
   <%- include('../partials/auth-story', { photo: 'library-study.webp', message: 'Your next semester starts here.' }) %>
