@@ -35,6 +35,14 @@ docker compose exec ucrs npm run seed
 
 Compose waits for MongoDB to become writable before starting the portal. The seed command creates the administrator. Open the portal at the configured origin and sign in with that account. New registrations receive the Student role. To create a teaching account, register it and have the administrator assign the Faculty role under **People and access**. [Open the local portal](http://localhost:8080)
 
+### Load mock data for local development
+
+Run `docker compose exec ucrs npm run seed:mock`. If you're running Node on the host, use `npm run seed:mock` with the host `MONGO_URI` from [Run Node on the host](#run-node-on-the-host).
+
+The mock seeder adds courses, sections for `CURRENT_TERM`, enrollments, a waitlist, and published grades from a prior term. Sign in as `student@demo.ucrs.test`, `faculty@demo.ucrs.test`, or `admin@demo.ucrs.test`. The first run prints all demo account emails and a generated shared password. Set `MOCK_SEED_PASSWORD` before the first run if you prefer to choose the password.
+
+The mock seeder runs once per development database. Running it again preserves any changes you made to the sample records. `npm run seed` remains available to create the configured administrator separately.
+
 ### Browse the database with Compass Web
 
 The Compose file also defines a `compass` service running [MongoDB Compass Web](https://github.com/haohanyang/compass-web). It waits for MongoDB to be writable and connects with the same root credentials as the app. Start the whole stack, not just `ucrs`, to include it.

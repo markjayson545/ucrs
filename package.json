@@ -13,7 +13,8 @@
     "start": "node ./bin/www",
     "predev": "node scripts/copy-vendor.js",
     "dev": "node --watch ./bin/www",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "seed:mock": "node scripts/seed-mock.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
