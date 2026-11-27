@@ -5,7 +5,7 @@ const Section = require('../models/Section');
 const AppError = require('../utils/AppError');
 
 exports.list = () => User.find()
-    .select('name email idNumber department role isActive').sort('name').lean();
+    .select('name email idNumber department role isActive imageVersion').sort('name').lean();
 
 exports.faculty = () => User.find({ role: 'faculty', isActive: true })
     .select('name').sort('name').lean();

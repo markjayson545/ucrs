@@ -1,39 +1,50 @@
 <%- include('../partials/header') %>
 <a class="back-link" href="/faculty/sections">← My sections</a>
-<%- include('../partials/page-heading', { eyebrow: section.course?.code + ' / SECTION ' + section.sectionCode, description: 'Choose a grade to publish it to the student’s transcript. Blank selections leave existing grades as they are.', action: { href: '/faculty/sections/' + section._id + '/roster', label: 'View roster', icon: 'users' } }) %>
+<% const canGrade = section.status !== 'cancelled'; %>
+<%- include('../partials/page-heading', {
+  eyebrow: section.course?.code + ' / SECTION ' + section.sectionCode,
+  description: canGrade ? 'Publish grades to add them to student transcripts. “Leave as is” keeps the current grade.' : 'Grades can’t be changed because this section was cancelled.',
+  action: { href: '/faculty/sections/' + section._id + '/roster', label: 'View roster', icon: 'users' }
+}) %>
 <section class="panel">
   <div class="panel-heading"><h2><%= section.course?.title || 'Gradebook' %></h2><span class="badge"><%= section.term %></span></div>
-  <% if (!records.length) { %><p class="empty-state">There are no enrolled students to grade.</p><% } else { %>
-    <form action="/faculty/sections/<%= section._id %>/grades" method="post" data-gradebook
-      <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+  <% if (!records.length) { %><p class="empty-state">There are no students in this gradebook.</p><% } else { %>
+    <% if (canGrade) { %>
+      <form action="/faculty/sections/<%= section._id %>/grades" method="post" data-gradebook
+        <% if (preview) { %>data-preview-form inert<% } else { %>data-submit<% } %>>
+      <div class="form-feedback" aria-live="polite" hidden></div>
+    <% } %>
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Grade entry</caption>
-          <thead><tr><th>Student</th><th>Student ID</th><th>Current grade</th><th>New grade</th></tr></thead>
+          <caption class="sr-only"><%= canGrade ? 'Grade entry' : 'Published grades' %></caption>
+          <thead><tr><th scope="col">Student</th><th scope="col">Student ID</th><th scope="col">Current grade</th><% if (canGrade) { %><th scope="col">New grade</th><% } %></tr></thead>
           <tbody>
             <% records.forEach(record => { %>
               <tr>
-                <td><strong><%= record.student.name %></strong></td><td><%= record.student.idNumber || '—' %></td>
+                <th scope="row" class="gradebook-student"><%= record.student.name %></th><td><%= record.student.idNumber || '—' %></td>
                 <td><%= record.grade?.letter || 'Ungraded' %></td>
-                <td>
-                  <label class="sr-only" for="grade-<%= record._id %>">New grade for <%= record.student.name %></label>
-                  <select id="grade-<%= record._id %>" name="grade[<%= record._id %>]">
-                    <option value="">Leave as is</option>
-                    <% letters.forEach(letter => { %><option><%= letter %></option><% }) %>
-                  </select>
-                </td>
+                <% if (canGrade) { %>
+                  <td>
+                    <label class="sr-only" for="grade-<%= record._id %>">New grade for <%= record.student.name %></label>
+                    <select id="grade-<%= record._id %>" name="grade[<%= record._id %>]">
+                      <option value="">Leave as is</option>
+                      <% letters.forEach(letter => { %><option><%= letter %></option><% }) %>
+                    </select>
+                  </td>
+                <% } %>
               </tr>
             <% }) %>
           </tbody>
         </table>
       </div>
-      <div class="form-actions">
-        <button class="button primary" type="submit" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview grade submission' : 'Save grades' %></button>
-        <button class="button secondary" type="reset">Reset selections</button>
-        <span class="muted" data-grade-count role="status" hidden></span>
-      </div>
-      <div class="form-feedback" aria-live="polite" hidden></div>
-    </form>
+    <% if (canGrade) { %>
+        <div class="form-actions">
+          <button class="button primary" type="submit" <%= preview ? 'disabled' : '' %>><%= preview ? 'Preview grade submission' : 'Publish grades' %></button>
+          <button class="button secondary" type="reset">Reset selections</button>
+          <span class="muted" data-grade-count role="status" hidden></span>
+        </div>
+      </form>
+    <% } %>
   <% } %>
 </section>
 <%- include('../partials/footer') %>

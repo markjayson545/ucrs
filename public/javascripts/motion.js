@@ -84,9 +84,6 @@
         immediateRender: false,
       });
     }
-    for (const check of select("[data-registration-notice] .icon")) {
-      gsap.from(check, { scale: 0.65, duration: 0.2, ease: "back.out(1.5)", clearProps: "transform" });
-    }
 
     context.add("openMenu", () => {
       enter(".sidebar .nav-item", { y: 0, x: -6, duration: 0.22, stagger: { amount: 0.12 }, overwrite: true });

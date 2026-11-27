@@ -15,7 +15,16 @@
         <tbody>
           <% courses.forEach(course => { %>
             <tr>
-              <td><strong><%= course.code %></strong><span class="table-sub"><%= course.title %></span></td>
+              <td>
+                <div class="table-identity">
+                  <span class="course-thumbnail" aria-hidden="true">
+                    <%- include('../partials/icon', { name: 'book' }) %>
+                    <img src="<%= images.courseCover(course) %>" width="64" height="44" alt="" loading="lazy"
+                      data-image-fallback="<%= course.imageVersion ? images.defaultCourseCover(course) : '' %>">
+                  </span>
+                  <span><strong><%= course.code %></strong><span class="table-sub"><%= course.title %></span></span>
+                </div>
+              </td>
               <td><%= course.department %></td><td><%= course.credits %></td>
               <td><%= course.prerequisites.map(prerequisite => prerequisite.code).join(', ') || 'None' %></td>
               <td>

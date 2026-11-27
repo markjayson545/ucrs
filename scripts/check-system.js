@@ -232,16 +232,28 @@ async function run() {
             faculty: String(faculty.user._id), capacity: 12, status: 'open',
             'meetings[0][day]': 'MON', 'meetings[0][start]': '09:00',
             'meetings[0][end]': '10:00', 'meetings[0][room]': 'Lab 2',
-            'meetings[2][day]': 'WED', 'meetings[2][start]': '09:00',
-            'meetings[2][end]': '10:00', 'meetings[2][room]': 'Lab 3',
+            'meetings[2][day]': 'WED', 'meetings[2][start]': '23:00',
+            'meetings[2][endsAtMidnight]': '1', 'meetings[2][room]': 'Lab 3',
         };
+        const invalidMeeting = await request('/admin/sections', {
+            ...admin, method: 'POST', browserForm: true, status: 400,
+            form: { ...meetingForm, 'meetings[2][endsAtMidnight]': '', 'meetings[2][end]': '99:99' },
+        });
+        assert.equal((await invalidMeeting.json()).errors[0].field, 'schedule.1.end');
         await request('/admin/sections', { ...admin, method: 'POST', form: meetingForm, status: 303 });
         const browserSection = await Section.findOne({ sectionCode: 'B1' });
         assert.equal(browserSection.schedule.length, 2);
-        await request('/admin/sections/' + browserSection._id + '/edit', {
-            ...admin, method: 'POST', form: { ...meetingForm, capacity: 14 }, status: 303,
+        assert.equal(browserSection.schedule[1].end, 1440);
+        const editSection = '/admin/sections/' + browserSection._id + '/edit';
+        const sectionPage = await (await request(editSection, admin)).text();
+        assert.match(sectionPage, /name="meetings\[1\]\[endsAtMidnight\]" value="1" checked/);
+        await request(editSection, {
+            ...admin, method: 'POST', status: 303,
+            form: { ...meetingForm, capacity: 14, 'meetings[2][endsAtMidnight]': '', 'meetings[2][end]': '24:00' },
         });
-        assert.equal((await Section.findById(browserSection._id)).capacity, 14);
+        const editedSection = await Section.findById(browserSection._id);
+        assert.equal(editedSection.capacity, 14);
+        assert.equal(editedSection.schedule[1].end, 1440);
         await request('/admin/sections/' + browserSection._id + '/delete', {
             ...admin, method: 'POST', form: {}, status: 303,
         });

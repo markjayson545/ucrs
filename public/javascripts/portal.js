@@ -54,6 +54,18 @@
     window.location.assign(event.target.value);
   });
 
+  for (const image of document.querySelectorAll('img[data-image-fallback]')) {
+    function recoverImage() {
+      const fallback = image.dataset.imageFallback;
+      image.dataset.imageFallback = '';
+      if (fallback) image.src = fallback;
+      else image.hidden = true;
+    }
+
+    image.addEventListener('error', recoverImage);
+    if (image.complete && !image.naturalWidth) recoverImage();
+  }
+
   for (const editor of document.querySelectorAll('[data-image-editor]')) {
     const input = editor.querySelector('input[type="file"]');
     const remove = editor.querySelector('[name="removeImage"]');
@@ -165,22 +177,20 @@
   let submitter;
   let dialogTrigger;
 
-  function openDialog({ title, message, label, confirm }) {
+  function openDialog({ title, message, label }) {
     if (!dialog) return;
     dialog.querySelector('[data-dialog-title]').textContent = title;
     dialog.querySelector('[data-dialog-message]').textContent = message;
-    dialog.querySelector('[data-dialog-cancel]').hidden = !confirm;
     const button = dialog.querySelector('[data-dialog-confirm]');
     button.textContent = label;
     dialog.returnValue = '';
     dialogTrigger = submitter || document.activeElement;
     dialog.showModal();
-    if (!confirm) button.focus();
     dialog.dispatchEvent(new Event('portal:open', { bubbles: true }));
   }
 
   function showPreview(message) {
-    openDialog({ title: 'Preview complete', message, label: 'Got it', confirm: false });
+    document.dispatchEvent(new CustomEvent('portal:toast', { detail: { kind: 'info', message } }));
   }
 
   dialog?.addEventListener('close', () => {
@@ -209,7 +219,6 @@
         title: form.dataset.confirm,
         message: form.dataset.confirmMessage || 'Confirm to save this change.',
         label: submitter?.textContent.trim() || 'Continue',
-        confirm: true,
       });
     });
   }
@@ -229,65 +238,24 @@
   }
 
   for (const form of document.querySelectorAll('[data-submit]')) {
-    const fields = Array.from(form.elements);
-    let feedback = form.querySelector('.form-feedback');
-
-    function showFormStatus(message, kind) {
-      if (!feedback) {
-        feedback = document.createElement('div');
-        feedback.className = 'form-feedback';
-        feedback.setAttribute('aria-live', 'polite');
-        form.append(feedback);
-      }
-      feedback.textContent = message;
-      feedback.dataset.kind = kind;
-      feedback.hidden = false;
-    }
-
+    const feedback = createFormFeedback(form);
     function showFormError(message, errors = [], expired = false) {
-      showFormStatus(message, 'error');
-      if (errors.length) {
-        const list = document.createElement('ul');
-        for (const error of errors) {
-          const item = document.createElement('li');
-          const field = fields.find(input => input.name === error.field || input.name === error.field?.split('.')[0]);
-          if (field?.id && !field.disabled) {
-            field.setAttribute('aria-invalid', 'true');
-            const link = document.createElement('a');
-            link.href = '#' + field.id;
-            link.textContent = error.message;
-            link.addEventListener('click', event => {
-              event.preventDefault();
-              field.focus();
-            });
-            item.append(link);
-          } else {
-            item.textContent = error.message;
-          }
-          list.append(item);
-        }
-        feedback.append(list);
-      }
+      let recoveryLink;
       if (expired) {
-        const link = document.createElement('a');
-        link.href = '/auth/login';
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = 'Sign in in a new tab';
-        feedback.append(document.createElement('br'), link);
+        recoveryLink = document.createElement('a');
+        recoveryLink.href = '/auth/login';
+        recoveryLink.target = '_blank';
+        recoveryLink.rel = 'noopener';
+        recoveryLink.textContent = 'Sign in in a new tab';
       }
-      feedback.tabIndex = -1;
-      feedback.focus();
-      feedback.dispatchEvent(new Event('portal:feedback', { bubbles: true }));
+      feedback.show(message, 'error', { errors, recoveryLink });
+      if (!errors.length) {
+        document.dispatchEvent(new CustomEvent('portal:toast', {
+          detail: { kind: 'error', message, announce: false },
+        }));
+      }
     }
 
-    form.addEventListener('input', event => {
-      if (!event.target.validity?.customError) event.target.removeAttribute('aria-invalid');
-    });
-    form.addEventListener('reset', () => {
-      if (feedback) feedback.hidden = true;
-      fields.forEach(field => field.removeAttribute('aria-invalid'));
-    });
     form.addEventListener('submit', async event => {
       if (event.defaultPrevented) return;
       event.preventDefault();
@@ -295,14 +263,13 @@
       const button = event.submitter;
       const values = new FormData(form, button || undefined);
       const body = form.enctype === 'multipart/form-data' ? values : new URLSearchParams(values);
-      fields.forEach(field => field.removeAttribute('aria-invalid'));
       form.dataset.saving = 'true';
       form.setAttribute('aria-busy', 'true');
       if (button) {
         button.classList.add('is-submitting');
         button.disabled = true;
       }
-      showFormStatus('Saving…', 'pending');
+      feedback.show('Saving…', 'pending');
 
       try {
         const response = await fetch(form.action, { method: 'POST', body, headers: { 'X-Portal-Form': '1' } });
@@ -369,6 +336,53 @@
     });
   }
 
+  for (const group of document.querySelectorAll('[data-option-group]')) {
+    const filter = group.querySelector('[data-option-filter]');
+    if (!filter) continue;
+    const status = group.querySelector('[data-option-status]');
+    const select = group.querySelector('select');
+    const options = select ? Array.from(select.options).filter(option => option.value) : Array.from(group.querySelectorAll('[data-option]'));
+    if (!options.length) continue;
+    const placeholder = select?.options[0];
+    const initialValue = select && (options.find(option => option.defaultSelected)?.value || '');
+
+    function update(selectedValue = select?.value) {
+      const query = filter.value.trim().toLowerCase();
+      const words = query.split(/\s+/);
+      const matches = options.filter(option => {
+        const label = option.textContent.toLowerCase();
+        return words.every(word => label.includes(word));
+      });
+      if (select) {
+        const selected = options.find(option => option.value === selectedValue);
+        const keepSelected = selected && !matches.includes(selected);
+        const visible = keepSelected ? [selected, ...matches] : matches;
+        select.replaceChildren(placeholder, ...visible);
+        select.value = selectedValue;
+        const count = matches.length ? `${matches.length} matching option${matches.length === 1 ? '' : 's'}.` : 'No matching options.';
+        status.textContent = query ? count + (keepSelected ? ' Your selection is still shown.' : '') : '';
+      } else {
+        const visible = new Set(matches);
+        for (const option of options) option.hidden = !visible.has(option);
+        const selected = group.querySelectorAll('input[type="checkbox"]:checked').length;
+        const count = matches.length ? `${matches.length} matching course${matches.length === 1 ? '' : 's'} · ` : 'No matching courses · ';
+        const selection = `${selected} prerequisite${selected === 1 ? '' : 's'} selected`;
+        status.textContent = (query ? count : '') + selection;
+      }
+    }
+
+    filter.closest('[hidden]').hidden = false;
+    filter.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
+    });
+    filter.addEventListener('input', () => update());
+    group.addEventListener('change', event => {
+      if (event.target !== filter && (!select || filter.value.trim())) update();
+    });
+    filter.form.addEventListener('reset', () => setTimeout(() => update(initialValue), 0));
+    if (!select) update();
+  }
+
   for (const wrap of document.querySelectorAll('.table-wrap')) {
     const table = wrap.querySelector('table');
     if (!table?.caption) continue;
@@ -405,7 +419,7 @@
       submit.disabled = selected === 0 || form.dataset.saving === 'true';
     };
     form.addEventListener('change', updateGrades);
-    form.addEventListener('reset', () => queueMicrotask(updateGrades));
+    form.addEventListener('reset', () => setTimeout(updateGrades, 0));
     updateGrades();
   }
 
@@ -415,33 +429,67 @@
 
   if (meetings && template && addMeeting) {
     let nextIndex = meetings.children.length;
-    const refreshRemoveButtons = () => {
-      for (const button of meetings.querySelectorAll('[data-remove-meeting]')) {
+    const refreshMeetingLabels = () => {
+      Array.from(meetings.children).forEach((row, index) => {
+        row.querySelector('[data-meeting-title]').textContent = `Meeting ${index + 1}`;
+        const button = row.querySelector('[data-remove-meeting]');
+        button.setAttribute('aria-label', `Remove meeting ${index + 1}`);
         button.hidden = meetings.children.length < 2;
-      }
+        for (const field of row.querySelectorAll('[data-meeting-field]')) {
+          field.dataset.errorField = `schedule.${index}.${field.dataset.meetingField}`;
+        }
+      });
     };
-    const checkTimes = (row) => {
+    const checkTimes = (row, showError = false) => {
       const start = row.querySelector('[data-start]');
       const end = row.querySelector('[data-end]');
-      end.setCustomValidity(end.value && start.value && end.value <= start.value
-        ? 'End time must be later than start time.' : '');
+      const midnight = row.querySelector('[data-midnight]').checked;
+      const error = row.querySelector('[data-end-error]');
+      end.disabled = midnight;
+      end.required = !midnight;
+      const invalidOrder = !midnight && start.value && end.value
+        && start.validity.valid && !end.validity.patternMismatch && end.value <= start.value;
+      end.setCustomValidity(invalidOrder ? 'End time must be later than start time.' : '');
+      const wasVisible = !error.hidden;
+      if (showError || wasVisible) {
+        const message = midnight || end.validity.valid ? '' : end.validationMessage;
+        error.textContent = message;
+        error.hidden = !message;
+        if (message) end.setAttribute('aria-invalid', 'true');
+        else if (wasVisible && !end.getAttribute('aria-describedby')?.includes('-server-error')) end.removeAttribute('aria-invalid');
+      }
     };
     meetings.addEventListener('input', event => {
-      if (event.target.matches('[data-start], [data-end]')) checkTimes(event.target.closest('[data-meeting]'));
+      if (event.target.matches('[data-start], [data-end], [data-midnight]')) checkTimes(event.target.closest('[data-meeting]'));
     });
+    meetings.addEventListener('focusout', event => {
+      if (event.target.matches('[data-end]')) checkTimes(event.target.closest('[data-meeting]'), true);
+    });
+    meetings.addEventListener('invalid', event => {
+      if (event.target.matches('[data-end]')) checkTimes(event.target.closest('[data-meeting]'), true);
+    }, true);
     meetings.addEventListener('click', event => {
       if (!event.target.matches('[data-remove-meeting]')) return;
-      event.target.closest('[data-meeting]').remove();
-      refreshRemoveButtons();
-      addMeeting.focus();
+      const row = event.target.closest('[data-meeting]');
+      const next = row.nextElementSibling;
+      row.remove();
+      refreshMeetingLabels();
+      (next?.querySelector('select') || addMeeting).focus();
     });
     meetings.closest('form').addEventListener('reset', () => {
-      for (const end of meetings.querySelectorAll('[data-end]')) end.setCustomValidity('');
+      setTimeout(() => {
+        for (const row of meetings.children) {
+          const error = row.querySelector('[data-end-error]');
+          if (!error.hidden) row.querySelector('[data-end]').removeAttribute('aria-invalid');
+          error.hidden = true;
+          checkTimes(row);
+        }
+      }, 0);
     });
     addMeeting.addEventListener('click', () => {
       const row = template.content.firstElementChild.cloneNode(true);
-      for (const element of row.querySelectorAll('[id], [name], [for]')) {
-        for (const attribute of ['id', 'name', 'for']) {
+      for (const element of row.querySelectorAll('[id], [name], [for], [aria-describedby]')) {
+        for (const attribute of ['id', 'name', 'for', 'aria-describedby']) {
           if (element.hasAttribute(attribute)) {
             element.setAttribute(attribute, element.getAttribute(attribute).replace('INDEX', nextIndex));
           }
@@ -449,11 +497,13 @@
       }
       nextIndex += 1;
       meetings.append(row);
-      refreshRemoveButtons();
+      checkTimes(row);
+      refreshMeetingLabels();
       row.querySelector('select').focus();
       row.dispatchEvent(new Event('portal:feedback', { bubbles: true }));
     });
-    refreshRemoveButtons();
+    for (const row of meetings.children) checkTimes(row);
+    refreshMeetingLabels();
     addMeeting.hidden = false;
   }
 })();

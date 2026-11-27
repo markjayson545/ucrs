@@ -12,7 +12,18 @@
       <tbody>
         <% people.forEach(person => { %>
           <tr data-search-row="<%= [person.name, person.email, person.idNumber, person.department, person.role].join(' ') %>">
-            <td><strong><%= person.name %></strong><span class="table-sub"><%= person.email %></span></td>
+            <td>
+              <div class="table-identity">
+                <span class="avatar directory-avatar" aria-hidden="true">
+                  <%= images.initials(person.name) %>
+                  <% if (person.imageVersion) { %>
+                    <img src="/admin/users/<%= person._id %>/photo?v=<%= person.imageVersion %>"
+                      width="40" height="40" alt="" loading="lazy" data-image-fallback="">
+                  <% } %>
+                </span>
+                <span><strong><%= person.name %></strong><span class="table-sub"><%= person.email %></span></span>
+              </div>
+            </td>
             <td><%= person.idNumber || '—' %></td><td><%= person.department || '—' %></td>
             <td>
               <% if (preview || person.role === 'admin') { %>

@@ -34,15 +34,20 @@ async function checkFaculty(faculty, session) {
         { session, timestamps: false }
     );
     if (!user) {
-        throw new AppError('Select an active faculty member.', 400);
+        const message = 'Select an active faculty member.';
+        throw new AppError(message, 400, [{ field: 'faculty', message }]);
     }
 }
 
 function checkSchedule(schedule) {
     for (const [index, meeting] of schedule.entries()) {
         if (meeting.start >= meeting.end) throw new AppError('Each meeting must end after it starts.', 400);
-        if (schedule.slice(0, index).some(other => overlaps(meeting, other))) {
-            throw new AppError('Meetings in one section cannot overlap.', 400);
+        const earlierMeeting = schedule.slice(0, index).findIndex(other => overlaps(meeting, other));
+        if (earlierMeeting !== -1) {
+            throw new AppError('Meetings in one section cannot overlap.', 400, [{
+                field: `schedule.${index}.start`,
+                message: `Meeting ${index + 1} overlaps with meeting ${earlierMeeting + 1}. Choose a different time or day.`,
+            }]);
         }
     }
 }
@@ -70,10 +75,12 @@ exports.update = (id, data) => mongoose.connection.transaction(async session => 
         section: id, status: { $in: ['enrolled', 'waitlisted'] },
     }).session(session);
     if (data.capacity !== undefined && data.capacity < section.enrolledCount) {
-        throw new AppError('Capacity cannot be lower than the number of seats taken.', 409);
+        const message = 'Capacity cannot be lower than the number of seats taken.';
+        throw new AppError(message, 409, [{ field: 'capacity', message: `Enter at least ${section.enrolledCount} seats.` }]);
     }
     if (data.status === 'cancelled' && active) {
-        throw new AppError('Drop active registrations before cancelling this section.', 409);
+        const message = 'Drop active registrations before cancelling this section.';
+        throw new AppError(message, 409, [{ field: 'status', message }]);
     }
     if ((data.faculty && !section.faculty.equals(data.faculty)) ||
         (data.status === 'open' && section.status !== 'open')) {

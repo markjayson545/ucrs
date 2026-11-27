@@ -33,9 +33,8 @@ router.use((req, res, next) => {
         termLabel: 'Term ' + currentTerm,
         days,
         formatTime,
-        notice: req.session.notice,
+        notice: null,
     });
-    if (req.method === 'GET' && req.session.notice) delete req.session.notice;
     loadPageUser(req, res, next);
 });
 
@@ -46,6 +45,17 @@ router.use('/account', requirePageUser);
 router.use(['/student', '/faculty', '/admin', '/account'], (req, res, next) => {
     res.set('Cache-Control', 'no-store');
     if (req.method === 'POST') return sameOrigin(req, res, next);
+    next();
+});
+
+router.get('/admin/users/:id/photo', idParam, validate, asyncHandler(portal.directoryPhoto));
+
+// Consume feedback on the destination page, after all image routes.
+router.use((req, res, next) => {
+    if (res.locals.pageRequest && req.method === 'GET' && req.session.notice) {
+        res.locals.notice = req.session.notice;
+        delete req.session.notice;
+    }
     next();
 });
 

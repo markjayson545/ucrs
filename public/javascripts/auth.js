@@ -1,14 +1,7 @@
 // Both account forms submit JSON and display the server's response here.
 const authForm = document.querySelector('[data-auth]');
-const feedback = authForm.querySelector('[role="status"]');
+const authFeedback = createFormFeedback(authForm);
 const submitButton = authForm.querySelector('button[type="submit"]');
-
-function showFeedback(message, kind) {
-  feedback.textContent = message;
-  feedback.dataset.kind = kind;
-  feedback.hidden = false;
-  feedback.dispatchEvent(new Event('portal:feedback', { bubbles: true }));
-}
 
 authForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -19,7 +12,7 @@ authForm.addEventListener('submit', async event => {
   submitButton.disabled = true;
   submitButton.classList.add('is-submitting');
   authForm.setAttribute('aria-busy', 'true');
-  showFeedback(authForm.dataset.pending, 'pending');
+  authFeedback.show(authForm.dataset.pending, 'pending');
 
   let redirect;
   try {
@@ -30,12 +23,16 @@ authForm.addEventListener('submit', async event => {
     });
     const result = await response.json();
     if (!response.ok) {
-      const messages = result.errors?.map(error => error.message).join(' ');
-      throw new Error(messages || result.message || 'The request could not be completed.');
+      const errors = Array.isArray(result.errors) ? result.errors : [];
+      authFeedback.show(errors.length ? 'Check the highlighted fields.' : result.message || 'The request could not be completed.',
+        'error', { errors });
+      return;
     }
     redirect = result.redirectTo || authForm.dataset.success;
   } catch (error) {
-    showFeedback(error instanceof SyntaxError ? 'The server returned an unexpected response. Try again.' : error.message, 'error');
+    authFeedback.show(error instanceof SyntaxError
+      ? 'The server returned an unexpected response. Try again.'
+      : 'Could not reach the portal. Check your connection and try again.', 'error');
   } finally {
     authForm.removeAttribute('aria-busy');
     submitButton.classList.remove('is-submitting');

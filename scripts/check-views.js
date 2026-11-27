@@ -78,6 +78,7 @@ const server = app.listen(0, "127.0.0.1", async () => {
       "/javascripts/reports.js",
       "/vendor/chartjs/chart.umd.min.js",
       "/javascripts/showcase.js",
+      "/javascripts/form-feedback.js",
       "/javascripts/portal.js",
       "/javascripts/motion.js",
       "/images/campus-courtyard.webp",

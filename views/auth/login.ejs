@@ -10,6 +10,9 @@
       <p>Use your campus account to open your workspace.</p>
       <form id="login-form" action="/auth/session<%= courseQuery %>" method="post"
         <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Signing in…"<% } %>>
+        <% const failed = typeof loginError === 'string'; %>
+        <% const message = failed ? loginError : (typeof loginNotice === 'string' ? loginNotice : ''); %>
+        <div class="form-feedback" role="status" <%= failed ? 'data-kind=error' : message ? 'data-toast-source' : 'hidden' %>><%= message %></div>
         <label for="email">University email</label>
         <input id="email" name="email" type="email" value="<%= typeof loginEmail === 'string' ? loginEmail : '' %>" autocomplete="username" placeholder="you@example.edu" required>
         <label for="password">Password</label>
@@ -20,9 +23,6 @@
         <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Sign in <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>
-        <% const failed = typeof loginError === 'string'; %>
-        <% const message = failed ? loginError : (typeof loginNotice === 'string' ? loginNotice : ''); %>
-        <p class="form-feedback" role="status" <%= failed ? 'data-kind=error' : '' %> <%= message ? '' : 'hidden' %>><%= message %></p>
       </form>
       <p class="auth-switch">New student? <a href="/auth/register<%= courseQuery %>">Create an account</a></p>
     </div>

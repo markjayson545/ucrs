@@ -1,0 +1,13 @@
+<div class="sr-only" role="status" aria-atomic="true" data-toast-announcement></div>
+<div class="portal-toast" data-toast hidden>
+  <span class="toast-mark" data-toast-mark="success"><%- include('icon', { name: 'check' }) %></span>
+  <span class="toast-mark" data-toast-mark="info"><%- include('icon', { name: 'info' }) %></span>
+  <span class="toast-mark" data-toast-mark="error"><%- include('icon', { name: 'alert' }) %></span>
+  <div class="toast-copy">
+    <strong data-toast-title></strong>
+    <p data-toast-message></p>
+  </div>
+  <button class="icon-button toast-close" type="button" aria-label="Dismiss notification" data-toast-close>
+    <%- include('icon', { name: 'close' }) %>
+  </button>
+</div>

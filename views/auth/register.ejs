@@ -11,9 +11,8 @@
       <p>Student accounts can browse courses, enroll, and track grades.</p>
       <form id="register-form" action="/auth/register<%= courseQuery %>" method="post"
         <% if (preview) { %>data-preview-form inert<% } else { %>data-auth data-pending="Creating your account…" data-success="<%= registeredUrl %>"<% } %>>
-        <% if (typeof registrationError === 'string') { %>
-          <p class="form-feedback" data-kind="error" role="alert"><%= registrationError %></p>
-        <% } %>
+        <% const failed = typeof registrationError === 'string'; %>
+        <div class="form-feedback" role="<%= failed ? 'alert' : 'status' %>" <%= failed ? 'data-kind=error' : 'hidden' %>><%= failed ? registrationError : '' %></div>
         <label for="name">Full name</label>
         <input id="name" name="name" value="<%= draft.name || '' %>" autocomplete="name" maxlength="100" required>
         <label for="email">University email</label>
@@ -41,7 +40,6 @@
         <button class="button primary full" type="submit" <%= preview ? 'disabled' : '' %>>
           Create student account <%- include('../partials/icon', { name: 'arrow' }) %>
         </button>
-        <p class="form-feedback" role="status" hidden></p>
       </form>
       <p class="auth-switch">Already have an account? <a href="/auth/login<%= courseQuery %>">Sign in</a></p>
     </div>

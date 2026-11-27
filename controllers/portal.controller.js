@@ -27,6 +27,11 @@ exports.profilePhoto = async (req, res) => {
     res.set('Cache-Control', 'private, no-store').type('image/webp').send(image);
 };
 
+exports.directoryPhoto = async (req, res) => {
+    const image = await imageService.read(User, req.params.id);
+    res.set('Cache-Control', 'private, no-store').type('image/webp').send(image);
+};
+
 exports.catalog = async (req, res) => {
     const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
     const department = typeof req.query.department === 'string' ? req.query.department : '';

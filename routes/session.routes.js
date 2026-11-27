@@ -26,6 +26,7 @@ router.post('/session', sameOrigin, limitSignIn, loginRules, validate, asyncHand
         if (error) return next(error);
         req.session.userId = String(user._id);
         req.session.authVersion = user.authVersion;
+        req.session.notice = 'You’re signed in.';
         req.session.save(error => {
             if (error) return next(error);
             if (req.is('application/json')) return res.json({ redirectTo });
